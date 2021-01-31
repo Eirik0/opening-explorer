@@ -4,7 +4,7 @@ To get started using Python3, run:
 
     python -m venv .venv
     .venv\Scripts\Activate.ps1 # Assuming powershell
-    pip install requirements.txt
+    pip install -r requirements.txt
 
 This will install all the dependencies. Running the program once will generate the settings.json file:
 
