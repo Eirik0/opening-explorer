@@ -111,11 +111,60 @@ def load_all_engine_options(settings):
                 options_file_path, uci_engine.options)
     return engine_options
 
+
 def open_engine_with_options(path, options):
     """Opens UCI engine with the specified dictionary of opening options"""
     engine = chess.engine.SimpleEngine.popen_uci(path)
     engine.configure(options)
     return engine
+
+
+def back_propagate(position):
+    # TODO
+    pass
+
+def search(db, engine, board):
+    position = db.get_position(board.fen())
+    if position is None:  # This should only happen for root searches
+        position = db.insert_position(
+            analysis.Position(
+                None,  # id
+                board.fen(),  # fen
+                None,  # move
+                None,  # score
+                None,  # depth
+                None),  # pv
+            None)  # TODO This should be something in the case that the root search is not from the initial position
+
+    children = db.get_child_positions(position.id)
+
+    legal_moves = list(board.legal_moves)
+    if len(children) == len(legal_moves):
+        # TODO find best child and expand
+        return
+
+    analyzed_children = {child.move for child in children}
+
+    # TODO Defer inserting the last child until we propagate
+
+    for move in legal_moves:
+        move_str = str(move)
+        print(move_str)
+        if move_str in analyzed_children:
+            continue
+        board.push(move)
+        # TODO try to load this fen as it may be a transposition.
+        # In this case we do not analyze, but still need to update game_dag
+        info = engine.analyse(board, chess.engine.Limit(depth=20))
+        # TODO mating score
+        score = info['score'].relative.score()
+        pv = ' '.join([str(move) for move in  info['pv']])
+        db.insert_position(
+            analysis.Position(None, board.fen(), move_str, score, 20, pv),
+            position.id)
+        board.pop()
+
+    back_propagate(position)
 
 def main():
     settings = load_settings()
@@ -125,25 +174,14 @@ def main():
     engine_options = load_all_engine_options(settings)
     first_engine_settings = settings['engines'][0]
 
-    # WIP select arbitrary engine from list
     with open_engine_with_options(
-        first_engine_settings['path'],
-        engine_options[first_engine_settings['nickname']]) as engine, database.Database() as db:
-        board = chess.Board()
-        print(db.insert(analysis.Position(
-            None,
-            None,
-            board.fen(),
-            None,
-            None,
-            None,
-            None
-        )))
+            first_engine_settings['path'],
+            engine_options[first_engine_settings['nickname']]) as engine, database.Database() as db:
+        search(db, engine, chess.Board())
         # for move in board.legal_moves:
         #     board.push(move)
         #     print(info)
         #     board.pop()
-
 
     # open database
     # In database, we store:  id, FEN, move (e.g. Nf3), parent id, score, depth, PV
@@ -176,6 +214,7 @@ def main():
     #         best score = score + uncertainty
     #         position.push(move)
     #         search(position)
+
 
 if __name__ == "__main__":
     main()

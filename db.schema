@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS openings (
     id INTEGER PRIMARY KEY AUTOINCREMENT, 
-    fen, 
+    fen UNIQUE, 
     move, 
     score, 
     depth, 
