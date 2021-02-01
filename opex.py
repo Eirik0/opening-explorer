@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
+import analysis
 import chess  # pip install chess
 from chess import engine
+import database
 import json
 import os.path
 import sys
+import sqlite3
 
 
 def load_settings():
@@ -81,14 +84,18 @@ def load_engine_options(options_file_path, default_options):
             setting = setting.strip()
             if len(setting) == 0 or setting.startswith('#'):
                 continue
+            setting = setting.split('#')[0].rstrip()
             setting_split = setting.split('=')
             if len(setting_split) == 2:
                 name = setting_split[0]
-                if '#' in setting_split[1]:
-                    value = setting_split[1].split('#')[0].strip()
+                value = setting_split[1]
+                default_value = default_options[name].default
+                if default_value is None:
+                    default_value = ''
                 else:
-                    value = setting_split[1].strip()
-                if value != default_options[name]:
+                    default_value = str(default_value)
+
+                if value != default_value:
                     options[name] = value
         return options
 
@@ -104,6 +111,11 @@ def load_all_engine_options(settings):
                 options_file_path, uci_engine.options)
     return engine_options
 
+def open_engine_with_options(path, options):
+    """Opens UCI engine with the specified dictionary of opening options"""
+    engine = chess.engine.SimpleEngine.popen_uci(path)
+    engine.configure(options)
+    return engine
 
 def main():
     settings = load_settings()
@@ -111,6 +123,27 @@ def main():
     check_engine_settings(settings)
 
     engine_options = load_all_engine_options(settings)
+    first_engine_settings = settings['engines'][0]
+
+    # WIP select arbitrary engine from list
+    with open_engine_with_options(
+        first_engine_settings['path'],
+        engine_options[first_engine_settings['nickname']]) as engine, database.Database() as db:
+        board = chess.Board()
+        print(db.insert(analysis.Position(
+            None,
+            None,
+            board.fen(),
+            None,
+            None,
+            None,
+            None
+        )))
+        # for move in board.legal_moves:
+        #     board.push(move)
+        #     print(info)
+        #     board.pop()
+
 
     # open database
     # In database, we store:  id, FEN, move (e.g. Nf3), parent id, score, depth, PV
@@ -143,7 +176,6 @@ def main():
     #         best score = score + uncertainty
     #         position.push(move)
     #         search(position)
-
 
 if __name__ == "__main__":
     main()
