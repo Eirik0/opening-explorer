@@ -1,13 +1,18 @@
-import analysis
+from . import analysis
 import os
 import sqlite3
+import sys
 
 
 class Database:
     def _initialize_db(self):
-        # TODO: indices
         c = self._db.cursor()
-        with open('db.schema') as schema:
+
+        # Expect to find db.schema in same directory as this module
+        this_module_dir = os.path.dirname(sys.modules[__name__].__file__)
+        schema_path = os.path.join(this_module_dir, 'db.schema')
+
+        with open(schema_path) as schema:
             c.executescript(schema.read())
 
     def __init__(self, path=None):

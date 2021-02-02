@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
-import analysis
-import chess  # pip install chess
-from chess import engine
-import database
 import json
 import os.path
-import sys
 import sqlite3
+import sys
+
+import chess  # pip install chess
+from chess import engine
+
+from . import analysis, database
 
 
 def load_settings():
@@ -123,6 +124,7 @@ def back_propagate(position):
     # TODO
     pass
 
+
 def search(db, engine, board):
     position = db.get_position(board.fen())
     if position is None:  # This should only happen for root searches
@@ -158,13 +160,14 @@ def search(db, engine, board):
         info = engine.analyse(board, chess.engine.Limit(depth=20))
         # TODO mating score
         score = info['score'].relative.score()
-        pv = ' '.join([str(move) for move in  info['pv']])
+        pv = ' '.join([str(move) for move in info['pv']])
         db.insert_position(
             analysis.Position(None, board.fen(), move_str, score, 20, pv),
             position.id)
         board.pop()
 
     back_propagate(position)
+
 
 def main():
     settings = load_settings()
