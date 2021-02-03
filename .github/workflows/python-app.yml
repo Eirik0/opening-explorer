@@ -54,8 +54,8 @@ jobs:
       with:
         name: coverage.xml
         path: coverage.xml
-    -name: Report coverage 
-      uses: 5monkeys/cobertura-action@master
+    - name: cobertura-report
+      uses: 5monkeys/cobertura-action@v7
       with:
         path: coverage.xml
         repo_token: ${{ secrets.GITHUB_TOKEN }}
