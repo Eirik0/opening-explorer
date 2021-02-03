@@ -12,15 +12,16 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest, ubuntu-latest, macos-latest ]
-        python-version: [ 3.7, 3.8, 3.9, 3.10.0-alpha.4 ]
+        python-version: [ 3.7, 3.8, 3.9 ]
 
     steps:
-    - name: Checkout
+    - name: Checkout repo
       uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: "${{ matrix.python-version }}"
+    # Begin caching
     - name: Upgrade pip
       run: |
         python -m pip install --upgrade pip
@@ -35,6 +36,7 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
+    # End caching
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
@@ -46,17 +48,32 @@ jobs:
         python -m unittest
 
   coverage:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout
+    - name: Checkout repo
       uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
-    - name: Install dependencies
+    # Begin caching
+    - name: Upgrade pip
       run: |
         python -m pip install --upgrade pip
+    - name: Get pip cache dir
+      id: pip-cache
+      run: |
+        echo "::set-output name=dir::$(pip cache dir)"
+    - name: Pip cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    # End caching
+    - name: Install dependencies
+      run: |
         pip install -r requirements.txt
     - name: Test with with coverage
       run: |
