@@ -4,7 +4,8 @@ import json
 import os.path
 import sys
 
-import chess  # pip install chess
+import chess
+import chess.engine
 
 from . import analysis, database
 
