@@ -92,4 +92,4 @@ jobs:
         show_line: true
         show_branch: true
         show_missing: true
-        minimum_coverage: 50
+        minimum_coverage: 80
