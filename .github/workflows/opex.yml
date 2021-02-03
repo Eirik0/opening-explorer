@@ -79,6 +79,10 @@ jobs:
       run: |
         coverage run --branch -m unittest
         coverage xml
+    - name: cobertura-clover-transform
+      run: |
+        pip install cobertura-clover-transform
+        cobertura-clover-transform coverage.xml --output clover-cov.xml
     - name: Upload coverage
       uses: actions/upload-artifact@v2
       with:
@@ -97,5 +101,5 @@ jobs:
       uses: johanvanhelden/gha-clover-test-coverage-check@v1
       with:
         percentage: 80
-        filename: coverage.xml
+        filename: clover-cov.xml
 
