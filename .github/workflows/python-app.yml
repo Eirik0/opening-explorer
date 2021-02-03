@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-latest, ubuntu-latest, macos-latest ]
-        python-version: [ 3.7, 3.8, 3.9 ]
+        python-version: [ 3.7, 3.8, 3.9, 3.10, pypy3 ]
 
     steps:
     - name: Checkout
@@ -47,13 +47,13 @@ jobs:
         pip install -r requirements.txt
     - name: Test with with coverage
       run: |
-        coverage run -m unittest
+        coverage run --branch -m unittest
         coverage xml
     - name: Upload coverage
       uses: actions/upload-artifact@v2
       with:
         name: coverage.xml
-        path: coverage.xml
+        path: coverage
     - name: cobertura-report
       uses: 5monkeys/cobertura-action@v7
       with:
