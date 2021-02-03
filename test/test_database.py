@@ -10,7 +10,7 @@ class DatabaseTests(unittest.TestCase):
 
         # Assert that both of our tables are created
         cursor = db._db.execute(
-            "SELECT count() FROM sqlite_schema WHERE type='table' AND (name='openings' OR name='game_dag')")
+            "SELECT count() FROM sqlite_master WHERE type='table' AND (name='openings' OR name='game_dag')")
         self.assertEqual(2, cursor.fetchone()[0])
         self.assertEqual(None, cursor.fetchone())
 
