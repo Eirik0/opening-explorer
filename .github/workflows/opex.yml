@@ -28,7 +28,11 @@ jobs:
       id: pip-cache
       run: |
         echo "::set-output name=dir::$(pip cache dir)"
-    - name: pip cache
+    - name: Install wheel
+      if: startsWith(runner.os, 'Windows') || startsWith(runner.os, 'macOs')
+      run: |
+        pip install wheel
+    - name: Pip cache
       uses: actions/cache@v2
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
