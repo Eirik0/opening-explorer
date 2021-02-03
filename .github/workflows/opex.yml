@@ -82,8 +82,8 @@ jobs:
     - name: Upload coverage
       uses: actions/upload-artifact@v2
       with:
-        name: coverage.xml
-        path: coverage
+        name: coverage
+        path: coverage.xml
     - name: cobertura-report
       uses: 5monkeys/cobertura-action@v7
       with:
