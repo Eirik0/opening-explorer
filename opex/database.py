@@ -1,19 +1,20 @@
-from . import analysis
 import os
 import sqlite3
 import sys
 
+from . import analysis
+
 
 class Database:
     def _initialize_db(self):
-        c = self._db.cursor()
+        cursor = self._db.cursor()
 
         # Expect to find db.schema in same directory as this module
         this_module_dir = os.path.dirname(sys.modules[__name__].__file__)
         schema_path = os.path.join(this_module_dir, 'db.schema')
 
         with open(schema_path) as schema:
-            c.executescript(schema.read())
+            cursor.executescript(schema.read())
 
     def __init__(self, path=None):
         if path is None:
@@ -73,7 +74,7 @@ class Database:
         cursor = self._db.execute(
             "SELECT * FROM openings WHERE fen = ?", (fen,))
         positions = Database._rows_to_positions(cursor)
-        assert(len(positions) <= 1)
+        assert len(positions) <= 1
         return None if len(positions) == 0 else positions[0]
 
     def get_child_positions(self, parent_id):
@@ -91,5 +92,5 @@ class Database:
             " WHERE id = ?",
             (position.score, position.depth, position.pv, position.id))
         positions = Database._rows_to_positions(cursor)
-        assert(len(positions) <= 1)
+        assert len(positions) <= 1
         return None if len(positions) == 0 else positions[0]

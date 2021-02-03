@@ -2,11 +2,9 @@
 
 import json
 import os.path
-import sqlite3
 import sys
 
 import chess  # pip install chess
-from chess import engine
 
 from . import analysis, database
 
@@ -39,7 +37,7 @@ def check_engine_settings(settings):
         if nicknames.count(nickname) > 1:
             sys.exit('duplicate nickname: ' + nickname)
 
-
+# pylint: disable=too-many-locals,too-many-branches
 def load_engine_options(options_file_path, default_options):
     """Loads engine options file optionally creating one with default parameters.
     Includes comments about settings in settings file.
@@ -77,7 +75,10 @@ def load_engine_options(options_file_path, default_options):
                     option_value = ''
                 name_and_val = "%s=%s" % (option_name, option_value)
                 settings_file.write("%s # type=%s%s\n" % (
-                    name_and_val.ljust(max_setting_string_len + 10), option.type, additional_comment))
+                    name_and_val.ljust(max_setting_string_len + 10),
+                    option.type,
+                    additional_comment))
+
     with open(options_file_path) as settings_file:
         options = dict()
         for setting in settings_file.readlines():
@@ -120,7 +121,7 @@ def open_engine_with_options(path, options):
     return engine
 
 
-def back_propagate(position):
+def back_propagate(position): #pylint: disable=unused-argument
     # TODO
     pass
 

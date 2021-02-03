@@ -4,6 +4,7 @@ from opex.database import Database
 
 
 class DatabaseTests(unittest.TestCase):
+    # pylint: disable=protected-access
     def test_schema(self):
         db = Database()
 
