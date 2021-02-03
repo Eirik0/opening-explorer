@@ -7,6 +7,7 @@ class Position:
         self.depth = depth
         self.pv = pv
 
+
 class DagNode:
     def __init__(self, parent_id, child_id):
         self.parent_id = parent_id

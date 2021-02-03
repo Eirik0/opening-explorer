@@ -8,6 +8,6 @@ To get started using Python3, run:
 
 This will install all the dependencies. Running the program once will generate the settings.json file:
 
-    python opex.py
+    python -m opex
 
 Alternatively, edit `settings.json.default` and rename to `settings.json`. Point that file at your UCI engine, and run again to generate `output_directory/<nickname>.uci`, which will contain default engine settings.

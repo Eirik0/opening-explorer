@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-import analysis
-import chess  # pip install chess
-from chess import engine
-import database
 import json
 import os.path
 import sys
-import sqlite3
+
+import chess
+import chess.engine
+
+from . import analysis, database
 
 
 def load_settings():
@@ -38,7 +38,7 @@ def check_engine_settings(settings):
         if nicknames.count(nickname) > 1:
             sys.exit('duplicate nickname: ' + nickname)
 
-
+# pylint: disable=too-many-locals,too-many-branches
 def load_engine_options(options_file_path, default_options):
     """Loads engine options file optionally creating one with default parameters.
     Includes comments about settings in settings file.
@@ -76,7 +76,10 @@ def load_engine_options(options_file_path, default_options):
                     option_value = ''
                 name_and_val = "%s=%s" % (option_name, option_value)
                 settings_file.write("%s # type=%s%s\n" % (
-                    name_and_val.ljust(max_setting_string_len + 10), option.type, additional_comment))
+                    name_and_val.ljust(max_setting_string_len + 10),
+                    option.type,
+                    additional_comment))
+
     with open(options_file_path) as settings_file:
         options = dict()
         for setting in settings_file.readlines():
@@ -119,9 +122,10 @@ def open_engine_with_options(path, options):
     return engine
 
 
-def back_propagate(position):
+def back_propagate(position): #pylint: disable=unused-argument
     # TODO
     pass
+
 
 def search(db, engine, board):
     position = db.get_position(board.fen())
@@ -158,13 +162,14 @@ def search(db, engine, board):
         info = engine.analyse(board, chess.engine.Limit(depth=20))
         # TODO mating score
         score = info['score'].relative.score()
-        pv = ' '.join([str(move) for move in  info['pv']])
+        pv = ' '.join([str(move) for move in info['pv']])
         db.insert_position(
             analysis.Position(None, board.fen(), move_str, score, 20, pv),
             position.id)
         board.pop()
 
     back_propagate(position)
+
 
 def main():
     settings = load_settings()
