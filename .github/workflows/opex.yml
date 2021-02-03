@@ -96,10 +96,10 @@ jobs:
         show_line: true
         show_branch: true
         show_missing: true
-        minimum_coverage: 80
+        minimum_coverage: 40
     - name: Clover test coverage check
       uses: johanvanhelden/gha-clover-test-coverage-check@v1
       with:
-        percentage: 80
+        percentage: 40
         filename: clover-cov.xml
-
+        rounded-precision: 1
