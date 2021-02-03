@@ -24,7 +24,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -v -r requirements.txt
+        pip install -r requirements.txt
     - name: Lint with pylint
       run: |
         pylint opex test
@@ -59,4 +59,7 @@ jobs:
       with:
         path: coverage.xml
         repo_token: ${{ secrets.GITHUB_TOKEN }}
+        show_line: true
+        show_branch: true
+        show_missing: true
         minimum_coverage: 50
