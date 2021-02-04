@@ -2,10 +2,17 @@ import os
 import sqlite3
 import sys
 
-from . import analysis
+from opex import analysis
 
 
 class Database:
+    @staticmethod
+    def _dict_factory(cursor, row):
+        named_columns = dict()
+        for idx, col in enumerate(cursor.description):
+            named_columns[col[0]] = row[idx]
+        return named_columns
+
     def _initialize_db(self):
         cursor = self._db.cursor()
 
@@ -21,19 +28,10 @@ class Database:
             path = ":memory:"
 
         self._db = sqlite3.connect(path)
+        self._db.row_factory = Database._dict_factory
         self._initialize_db()
 
     def close(self):
-        print("openings table:")
-        cursor = self._db.execute("SELECT * FROM openings")
-        for row in cursor:
-            print(row)
-
-        print("game_dag table:")
-        cursor = self._db.execute("SELECT * FROM game_dag")
-        for row in cursor:
-            print(row)
-
         self._db.close()
 
     def __enter__(self):
