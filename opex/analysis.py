@@ -6,5 +6,3 @@ class Position:
         self.score = score
         self.depth = depth
         self.pv = pv
-
-
