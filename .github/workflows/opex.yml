@@ -17,11 +17,9 @@ jobs:
     env:
       # This should be the same as `command_line` under `[run]` in `.coveragerc`
       test-command-line: -m unittest discover -v -s ./test -p test_*.py
-      coverage-os: linux-latest
-      coverage-python-version: 3.x
+      # Only run on linux-latest / python 3.x
       coverage-should-run: >
-        ${{ matrix.os }} == ${{ env.coverage-os }}
-          && ${{ matrix.python-version }} == ${{ env.coverage-python-version }}
+        ${{ matrix.os }} == linux-latest && ${{ matrix.python-version }} == 3.x
       # This should be the same as `fail_under` under `[report]` in `.coveragerc`
       coverage-minimum-percent: 40
 
