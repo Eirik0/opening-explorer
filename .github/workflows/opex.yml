@@ -26,7 +26,7 @@ jobs:
           - os: ubuntu-latest
             python-version: 3.x
             should-run-coverage: true
-        exclude: 
+        exclude:
           - os: ubuntu-latest
             python-version: 3.x
             should-run-coverage: false

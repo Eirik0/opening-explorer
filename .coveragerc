@@ -59,7 +59,7 @@ source =
 # you must also set `[report] precision` properly to make use of the decimal
 # places. A setting of 100 will fail any value under 100, regardless of the
 # number of decimal places of precision.
-fail_under = 40
+#fail_under = 40
 
 # A list of regular expressions. Any line of code that matches one of these
 # regexes is excused from being reported as a partial branch. If you use this
