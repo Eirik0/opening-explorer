@@ -19,8 +19,13 @@ command_line = -m unittest discover -v -s ./test -p test_*.py
 # A list of packages or directories, the source to measure during execution. If
 # set, include is ignored
 source =
-    opex
     test
+
+# A list of packages, the source to measure during execution. Operates the same
+# as `source`, but only names packages, for resolving ambiguities between
+# packages and directories.
+source_pkgs =
+    opex
 
 # The name concurrency libraries in use by the product code. If your program
 # uses "multiprocessing", "gevent", "greenlet", or "eventlet", you must name
