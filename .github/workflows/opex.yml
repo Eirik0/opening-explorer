@@ -24,8 +24,8 @@ jobs:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         python-version: [ 3.x ]
         should-run-coverage: [ false ]
-        include: [ os: ubuntu-latest, python-version: 3.x, should-run-coverage: true ]
-        exclude: [ os: ubuntu-latest, python-version: 3.x, should-run-coverage: false ]
+        include: { os: ubuntu-latest, python-version: 3.x, should-run-coverage: true }
+        exclude: { os: ubuntu-latest, python-version: 3.x, should-run-coverage: false }
 
     steps:
     - name: Checkout repo
