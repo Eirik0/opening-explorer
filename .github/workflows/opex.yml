@@ -15,17 +15,15 @@ jobs:
         python-version: [ 3.x ]
 
     env:
-      test:
-        # This should be the same as `command_line` under `[run]` in `.coveragerc`
-        command-line: -m unittest discover -v -s ./test -p test_*.py
-      coverage:
-        os: linux-latest
-        python-version: 3.x
-        should-run: >
-          (${{ matrix.os }} == ${{ env.coverage.os }}
-            && ${{ matrix.python-version }} == ${{ env.coverage.python-version }})
-        # This should be the same as `fail_under` under `[report]` in `.coveragerc`
-        minimum-percent: 40
+      # This should be the same as `command_line` under `[run]` in `.coveragerc`
+      test-command-line: -m unittest discover -v -s ./test -p test_*.py
+      coverage-os: linux-latest
+      coverage-python-version: 3.x
+      coverage-should-run: >
+        ${{ matrix.os }} == ${{ env.coverage-os }}
+          && ${{ matrix.python-version }} == ${{ env.coverage-python-version }}
+      # This should be the same as `fail_under` under `[report]` in `.coveragerc`
+      coverage-minimum-percent: 40
 
     runs-on: ${{ matrix.os }}
 
@@ -44,20 +42,19 @@ jobs:
       run: |
         pylint -v opex test
     - name: Run unittest
-      if: ! ${{ env.coverage.should-run }}
+      if: ! ${{ env.coverage-should-run }}
       run: |
         python ${{ env.test.command-line }}
     - name: Run unittest with coverage
-      if: ${{ env.coverage.should-run }}
+      if: ${{ env.coverage-should-run }}
       run: |
         coverage run ${{ env.test.command-line }}
     - name: Generate coverage xml
-      if: ${{ env.coverage.should-run }}
+      if: ${{ env.coverage-should-run }}
       run: |
-        coverage xml --fail-under ${{ env.coverage.minimum-percent }}
-        python -m unittest ${{ env.test.command-line }}
+        coverage xml --fail-under ${{ env.coverage-minimum-percent }}
     - name: Comment coverage on PR
-      if: ${{ always() }} && ${{ env.coverage.should-run }}
+      if: ${{ always() }} && ${{ env.coverage-should-run }}
       uses: 5monkeys/cobertura-action@v7
       with:
         path: coverage.xml
@@ -66,4 +63,4 @@ jobs:
         show_line: true
         show_branch: true
         show_missing: true
-        minimum_coverage: ${{ env.coverage.minimum-percent }}
+        minimum_coverage: ${{ env.coverage-minimum-percent }}
