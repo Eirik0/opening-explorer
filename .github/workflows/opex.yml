@@ -52,7 +52,7 @@ jobs:
       run: |
         coverage xml --fail-under ${{ env.coverage-minimum-percent }}
     - name: Comment coverage on PR
-      if: ${{ always() }} && ${{ env.coverage-should-run }}
+      if: ${{ env.coverage-should-run && always() }}
       uses: 5monkeys/cobertura-action@v7
       with:
         path: coverage.xml
