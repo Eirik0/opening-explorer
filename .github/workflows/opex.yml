@@ -9,6 +9,7 @@ on:
 jobs:
   run-tests:
     strategy:
+      fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
         python-version: [ 3.x ]
@@ -45,6 +46,7 @@ jobs:
     # Or test with coverage and subsequent actions
     - name: Run unittest with coverage
       if: ${{ env.coverage-should-run }}
+      continue-on-error: true
       run: |
         coverage run ${{ env.test.command-line }}
     - name: Check minimum coverage
@@ -52,7 +54,7 @@ jobs:
       run: |
         coverage xml --fail-under ${{ env.coverage-minimum-percent }}
     - name: Comment coverage on PR
-      if: ${{ env.coverage-should-run && always() }}
+      if: ${{ env.coverage-should-run }}
       uses: 5monkeys/cobertura-action@v7
       with:
         path: coverage.xml
@@ -63,3 +65,9 @@ jobs:
         show_branch: true
         show_missing: true
         minimum_coverage: ${{ env.coverage-minimum-percent }}
+    - name: Upload coverage
+      if: ${{ env.coverage-should-run }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage
+        path: coverage.xml
