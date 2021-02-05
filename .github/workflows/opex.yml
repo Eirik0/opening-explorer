@@ -65,6 +65,7 @@ jobs:
 
     - name: Check minimum coverage
       if: ${{ matrix.should-run-coverage }}
+      continue-on-error: true
       run: |
         coverage xml --fail-under ${{ env.coverage-minimum-percent }}
         
