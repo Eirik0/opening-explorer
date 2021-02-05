@@ -39,7 +39,7 @@ jobs:
     - name: Lint with pylint
       run: |
         pylint -v opex test
-    - name: Run unittest
+    - name: Run unittest without covera
       if: ${{ !(env.coverage-should-run) }}
       run: |
         python ${{ env.test.command-line }}
@@ -47,7 +47,7 @@ jobs:
       if: ${{ env.coverage-should-run }}
       run: |
         coverage run ${{ env.test.command-line }}
-    - name: Generate coverage xml
+    - name: Check minimum coverage
       if: ${{ env.coverage-should-run }}
       run: |
         coverage xml --fail-under ${{ env.coverage-minimum-percent }}
