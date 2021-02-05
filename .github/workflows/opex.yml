@@ -10,7 +10,7 @@ env:
   # This should be the same as `command_line` under `[run]` in `.coveragerc`
   test-command-line: -m unittest discover -v -s ./test -p test_*.py
   # This should be the same as `fail_under` under `[report]` in `.coveragerc`
-  coverage-minimum-percent: 40
+  coverage-minimum-percent: 0
 
 jobs:
   run-tests:
@@ -63,8 +63,9 @@ jobs:
 
     - name: Generate coverage xml
       if: ${{ matrix.should-run-coverage }}
+      # Override default `fail_under`
       run: |
-        coverage xml
+        coverage xml --fail-under 0
 
     - name: Comment coverage on PR
       if: ${{ matrix.should-run-coverage }}
