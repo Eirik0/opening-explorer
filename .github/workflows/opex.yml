@@ -39,10 +39,10 @@ jobs:
     - name: Lint with pylint
       run: |
         pylint -v opex test
-    - name: Run unittest
-      if: ! ${{ env.coverage-should-run }}
-      run: |
-        python ${{ env.test.command-line }}
+    # - name: Run unittest
+    #   if: ! ${{ env.coverage-should-run }}
+    #   run: |
+    #     python ${{ env.test.command-line }}
     - name: Run unittest with coverage
       if: ${{ env.coverage-should-run }}
       run: |
