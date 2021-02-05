@@ -16,8 +16,6 @@ jobs:
   run-tests:
     runs-on: ${{ matrix.os }}
 
-    continue-on-error: ${{ matrix.should-run-coverage }}
-
     strategy:
       fail-fast: false
       matrix:
@@ -63,12 +61,11 @@ jobs:
       run: |
         coverage run ${{ env.test.command-line }}
 
-    - name: Check minimum coverage
+    - name: Generate coverage xml
       if: ${{ matrix.should-run-coverage }}
-      continue-on-error: true
       run: |
-        coverage xml --fail-under ${{ env.coverage-minimum-percent }}
-        
+        coverage xml
+
     - name: Comment coverage on PR
       if: ${{ matrix.should-run-coverage }}
       uses: 5monkeys/cobertura-action@v7
@@ -88,3 +85,8 @@ jobs:
       with:
         name: coverage
         path: coverage.xml
+
+    - name: Check minimum coverage
+      if: ${{ matrix.should-run-coverage }}
+      run: |
+        coverage xml --fail-under ${{ env.coverage-minimum-percent }}
