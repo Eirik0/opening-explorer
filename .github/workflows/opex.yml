@@ -10,16 +10,14 @@ jobs:
   run-tests:
     strategy:
       matrix:
-        # os: [ ubuntu-latest, macos-latest, windows-latest ]
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
         python-version: [ 3.x ]
 
     env:
       # This should be the same as `command_line` under `[run]` in `.coveragerc`
       test-command-line: -m unittest discover -v -s ./test -p test_*.py
       # Only run on ubuntu-latest / python 3.x
-      coverage-should-run: >
-        ${{ matrix.os }} == ubuntu-latest && ${{ matrix.python-version }} == 3.x
+      coverage-should-run: ${{ matrix.os }} == ubuntu-latest && ${{ matrix.python-version }} == 3.x
       # This should be the same as `fail_under` under `[report]` in `.coveragerc`
       coverage-minimum-percent: 40
 
@@ -39,10 +37,12 @@ jobs:
     - name: Lint with pylint
       run: |
         pylint -v opex test
-    - name: Run unittest without covera
+    # Test without coverage
+    - name: Run unittest without coverage
       if: ${{ !(env.coverage-should-run) }}
       run: |
         python ${{ env.test.command-line }}
+    # Or test with coverage and subsequent actions
     - name: Run unittest with coverage
       if: ${{ env.coverage-should-run }}
       run: |

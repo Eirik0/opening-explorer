@@ -11,8 +11,8 @@
 # Whether to measure branch coverage in addition to statement coverage.
 branch = True
 
-# The command-line to run your program. This will be used if you run 
-# `coverage run`  with no further arguments. Coverage.py options cannot be 
+# The command-line to run your program. This will be used if you run
+# `coverage run`  with no further arguments. Coverage.py options cannot be
 # specified here, other than `-m` to indicate the module to run.
 command_line = -m unittest discover -v -s ./test -p test_*.py
 
@@ -33,14 +33,14 @@ source =
 
 # A list of regular expressions. Any line of your source code that matches one
 # of these regexes is excluded from being reported as missing. If you use this
-# option, you are replacing all the exclude regexes, so you’ll need to also 
+# option, you are replacing all the exclude regexes, so you’ll need to also
 # supply the “pragma: no cover” regex if you still want to use it.
 #exclude_lines =
 
 # A target coverage percentage. If the total coverage measurement is under this
 # value, then exit with a status code of 2. If you specify a non-integral value,
 # you must also set `[report] precision` properly to make use of the decimal
-# places. A setting of 100 will fail any value under 100, regardless of the 
+# places. A setting of 100 will fail any value under 100, regardless of the
 # number of decimal places of precision.
 fail_under = 40
 
@@ -52,11 +52,11 @@ fail_under = 40
 
 # The number of digits after the decimal point to display for reported coverage
 # percentages. The default is 0, displaying for example “87%”. A value of 2
-# will display percentages like “87.32%”. This setting also affects the 
+# will display percentages like “87.32%”. This setting also affects the
 # interpretation of the `fail_under` setting.
 #precision = 0
 
-# When running a summary report, show missing lines. 
+# When running a summary report, show missing lines.
 #show_missing = False
 
 # Sort the text report by the named column. Allowed values are “Name”, “Stmts”,
