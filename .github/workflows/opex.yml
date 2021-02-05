@@ -39,10 +39,10 @@ jobs:
     - name: Lint with pylint
       run: |
         pylint -v opex test
-    # - name: Run unittest
-    #   if: ! ${{ env.coverage-should-run }}
-    #   run: |
-    #     python ${{ env.test.command-line }}
+    - name: Run unittest
+      if: ${{ !(env.coverage-should-run) }}
+      run: |
+        python ${{ env.test.command-line }}
     - name: Run unittest with coverage
       if: ${{ env.coverage-should-run }}
       run: |
@@ -58,6 +58,7 @@ jobs:
         path: coverage.xml
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         skip_covered: false
+        show_class_names: false
         show_line: true
         show_branch: true
         show_missing: true
