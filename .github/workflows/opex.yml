@@ -42,7 +42,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     # Pip caching / dependencies
-    - uses: actions/cache@v2
+    - name: Cache pip (Linux)
+      uses: actions/cache@v2
       if: startsWith(runner.os, 'Linux')
       with:
         path: ~/.cache/pip
@@ -50,7 +51,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - uses: actions/cache@v2
+    - name: Cache pip (macOs)
+      uses: actions/cache@v2
       if: startsWith(runner.os, 'macOS')
       with:
         path: ~/Library/Caches/pip
@@ -58,7 +60,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - uses: actions/cache@v2
+    - name: Cache pip (Windows)
+      uses: actions/cache@v2
       if: startsWith(runner.os, 'Windows')
       with:
         path: ~\AppData\Local\pip\Cache
