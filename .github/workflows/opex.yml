@@ -32,6 +32,7 @@ jobs:
             should-run-coverage: false
 
     steps:
+    # Setup
     - name: Checkout repo
       uses: actions/checkout@v2
 
@@ -39,12 +40,41 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    
+    # Pip caching / dependencies
+    - name: Cache pip (Linux)
+      uses: actions/cache@v2
+      if: startsWith(runner.os, 'Linux')
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Cache pip (macOs)
+      uses: actions/cache@v2
+      if: startsWith(runner.os, 'macOS')
+      with:
+        path: ~/Library/Caches/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Cache pip (Windows)
+      uses: actions/cache@v2
+      if: startsWith(runner.os, 'Windows')
+      with:
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      restore-keys: |
+        ${{ runner.os }}-pip-
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt -vvv
+        pip install -r requirements.txt
 
+    # Linting
     - name: Lint with pylint
       run: |
         pylint -v opex test
@@ -55,7 +85,7 @@ jobs:
       run: |
         python ${{ env.test.command-line }}
 
-    # Or test with coverage and subsequent actions
+    # Or test with coverage and subsequent related actions
     - name: Run unittest with coverage
       if: ${{ matrix.should-run-coverage }}
       run: |
@@ -74,7 +104,6 @@ jobs:
         path: coverage.xml
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         skip_covered: false
-        show_class_names: false
         show_line: true
         show_branch: true
         show_missing: true
