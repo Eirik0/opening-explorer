@@ -19,13 +19,11 @@ command_line = -m unittest discover -v -s ./test -p test_*.py
 # A list of file name patterns, the files to include in measurement or
 # reporting. Ignored if `source` is set.
 #include =
-#    ./opex/*.py
-#    ./test/*.py
 
 # A list of file name patterns, the files to leave out of measurement or
 # reporting.
 omit =
-    .venv\*.*
+    .venv/*
 
 # A list of packages or directories, the source to measure during execution. If
 # set, include is ignored.
@@ -36,14 +34,13 @@ source =
 # as `source`, but only names packages, for resolving ambiguities between
 # packages and directories.
 #source_pkgs =
-#    opex
-#    test
 
 # The name concurrency libraries in use by the product code. If your program
 # uses "multiprocessing", "gevent", "greenlet", or "eventlet", you must name
 # that library in this option, or coverage.py will produce very wrong results.
 #concurrency =
 #    thread
+
 
 # Values common to many kinds of reporting.
 [report]
