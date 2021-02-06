@@ -6,86 +6,117 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  # This should be the same as `command_line` under `[run]` in `.coveragerc`
+  test-command-line: -m unittest discover -v -s ./test -p test_*.py
+  # This should be the same as `fail_under` under `[report]` in `.coveragerc`
+  coverage-minimum-percent: 0
+
 jobs:
   run-tests:
-    strategy:
-      matrix:
-        os: [ windows-latest, macos-latest ]
-        python-version: [ 3.x ]
-
     runs-on: ${{ matrix.os }}
 
-    steps:
-    - name: Checkout repo
-      uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Lint with pylint
-      run: |
-        pylint opex test
-    - name: Run unittest
-      run: |
-        python -m unittest
-
-  run-tests-with-coverage:
-    env:
-      minimum-coverage: 40
-
     strategy:
+      fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
         python-version: [ 3.x ]
-
-    runs-on: 
-      ${{ matrix.os }}
+        should-run-coverage: [ false ]
+        include:
+          - os: ubuntu-latest
+            python-version: 3.x
+            should-run-coverage: true
+        exclude:
+          - os: ubuntu-latest
+            python-version: 3.x
+            should-run-coverage: false
 
     steps:
+    # Setup
     - name: Checkout repo
       uses: actions/checkout@v2
+
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    
+    # Pip caching / dependencies
+    - name: Cache pip (Linux)
+      uses: actions/cache@v2
+      if: startsWith(runner.os, 'Linux')
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Cache pip (macOs)
+      uses: actions/cache@v2
+      if: startsWith(runner.os, 'macOS')
+      with:
+        path: ~/Library/Caches/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Cache pip (Windows)
+      uses: actions/cache@v2
+      if: startsWith(runner.os, 'Windows')
+      with:
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
+    # Linting
     - name: Lint with pylint
       run: |
-        pylint opex test
-    - name: Run unittest with coverage
+        pylint -v opex test
+
+    # Test without coverage
+    - name: Run unittest without coverage
+      if: ${{ !matrix.should-run-coverage }}
       run: |
-        coverage run --branch -m unittest
-        coverage xml
-    - name: cobertura-coverage-report
+        python ${{ env.test.command-line }}
+
+    # Or test with coverage and subsequent related actions
+    - name: Run unittest with coverage
+      if: ${{ matrix.should-run-coverage }}
+      run: |
+        coverage run ${{ env.test.command-line }}
+
+    - name: Generate coverage xml
+      if: ${{ matrix.should-run-coverage }}
+      # Override default `fail_under`
+      run: |
+        coverage xml --fail-under 0
+
+    - name: Comment coverage on PR
+      if: ${{ matrix.should-run-coverage }}
       uses: 5monkeys/cobertura-action@v7
       with:
         path: coverage.xml
         repo_token: ${{ secrets.GITHUB_TOKEN }}
+        skip_covered: false
         show_line: true
         show_branch: true
         show_missing: true
-        minimum_coverage: ${{ env.minimum-coverage }}
-    - name: cobertura-clover-transform
-      # Convert from cobertura to clover for clover-coverage-check
-      run: |
-        pip install cobertura-clover-transform
-        cobertura-clover-transform coverage.xml --output clover-cov.xml
+        minimum_coverage: ${{ env.coverage-minimum-percent }}
+
     - name: Upload coverage
+      if: ${{ matrix.should-run-coverage }}
       uses: actions/upload-artifact@v2
       with:
         name: coverage
-        path: |
-          coverage.xml
-          clover-cov.xml
-    - name: clover-coverage-check
-      uses: johanvanhelden/gha-clover-test-coverage-check@v1
-      with:
-        percentage: ${{ env.minimum-coverage }}
-        filename: clover-cov.xml
+        path: coverage.xml
+
+    - name: Check minimum coverage
+      if: ${{ matrix.should-run-coverage }}
+      run: |
+        coverage xml --fail-under ${{ env.coverage-minimum-percent }}
