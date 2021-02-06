@@ -6,9 +6,3 @@ class Position:
         self.score = score
         self.depth = depth
         self.pv = pv
-
-
-class DagNode:
-    def __init__(self, parent_id, child_id):
-        self.parent_id = parent_id
-        self.child_id = child_id
