@@ -3,17 +3,34 @@ import os
 import tempfile
 import unittest
 
+import chess.engine
+
 from opex import settings_loader
 
+# Option(name(str), type(str), default(str, int, bool, None), min(None, int), max(None, int), var(None, List[int]))
+TEST_ENGINE_OPTIONS = [chess.engine.Option('uci_chess960', 'check', 'false', None, None, None),  # managed
+                       chess.engine.Option('multipv', 'spin', 1, 1, 500, None),  # managed
+                       chess.engine.Option('ponder', 'check', 'false', None, None, None),  # managed
+                       chess.engine.Option('string_none', 'string', None, None, None, None),
+                       chess.engine.Option('string_blank', 'string', '', None, None, None),
+                       chess.engine.Option('string_empty', 'string', '<empty>', None, None, None),
+                       chess.engine.Option('string_something', 'string', 'something', None, None, None),
+                       chess.engine.Option('spin', 'spin', 0, -100, 100, None),
+                       chess.engine.Option('combo', 'combo', 'one', None, None, ['one', 'two', 'three']),
+                       chess.engine.Option('button_1', 'button', None, None, None, None),
+                       chess.engine.Option('button_2', 'button', None, None, None, None),
+                       chess.engine.Option('check_true', 'check', 'true', None, None, None),
+                       chess.engine.Option('check_false', 'check', 'false', None, None, None)]
 
-def remove_values(settings):
-    if isinstance(settings, dict):
-        for key, value in settings.items():
-            settings[key] = remove_values(value)
-        return settings
-    if isinstance(settings, list):
-        return settings
-    return ''
+# Does not include managed options or options with type `button`
+TEST_ENGINE_OPTIONS_DICT = {'string_none': None,
+                            'string_blank': '',
+                            'string_empty': '<empty>',
+                            'string_something': 'something',
+                            'spin': 0,
+                            'combo': 'one',
+                            'check_true': True,
+                            'check_false': False}
 
 
 class SettingsLoaderTests(unittest.TestCase):
@@ -36,12 +53,16 @@ class SettingsLoaderTests(unittest.TestCase):
 
     def test_load_settings__use_defaults_false__empty_file__loads_default_keys(self):
         with tempfile.NamedTemporaryFile() as settings_file:
-            default_settings = remove_values(settings_loader.load_default_settings())
+            default_settings = settings_loader.load_default_settings()
+            default_settings['data_directory'] = ''
+            default_settings['engine_options_directory'] = ''
             self.assertEqual(default_settings, settings_loader.load_settings(settings_file, False))
 
-    def test_load_settings__use_defaults_false__after_safe__loads_default_keys(self):
+    def test_load_settings__use_defaults_false__after_save__loads_default_keys(self):
         with tempfile.NamedTemporaryFile(mode='r+') as settings_file:
-            default_settings = remove_values(settings_loader.load_default_settings())
+            default_settings = settings_loader.load_default_settings()
+            default_settings['data_directory'] = ''
+            default_settings['engine_options_directory'] = ''
             settings = settings_loader.load_settings(settings_file, False)
             json.dump(settings, settings_file)
             settings_file.seek(0)
@@ -131,16 +152,153 @@ class SettingsLoaderTests(unittest.TestCase):
                  {'nickname': 'test3', 'path': 'test'}, {'nickname': 'test3', 'path': 'test'}])
         self.assertTrue('\'nickname\' not unique [\'test1\', \'test3\']' in str(error.exception))
 
-    def test_load_engine_options__exlucde_defaults_false__empty_file__loads_defaults(self):
-        pass
-
     def test_load_engine_options__empty_file__loads_empty_options(self):
-        pass
+        with tempfile.NamedTemporaryFile() as options_file:
+            options = settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file)
+            self.assertEqual(dict(), options)
 
-    # TODO check excludes managed options
+    def test_load_engine_options__exlucde_defaults_false__empty_file__loads_defaults(self):
+        with tempfile.NamedTemporaryFile() as options_file:
+            options = settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file, False)
+            self.assertEqual(TEST_ENGINE_OPTIONS_DICT, options)
 
-    # TODO save file with defaults then check empty options
+    def test_load_engine_options__after_save__loads_empty_options(self):
+        with tempfile.NamedTemporaryFile(mode='r+') as options_file:
+            options_file.write(
+                settings_loader.engine_options_file_string(TEST_ENGINE_OPTIONS, TEST_ENGINE_OPTIONS_DICT))
+            options_file.seek(0)
+            options = settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file)
+            self.assertEqual(dict(), options)
 
-    # TODO save and override one
+    def test_load_engine_options__exlucde_defaults_false__after_save__loads_defaults(self):
+        with tempfile.NamedTemporaryFile(mode='r+') as options_file:
+            options_file.write(
+                settings_loader.engine_options_file_string(TEST_ENGINE_OPTIONS, TEST_ENGINE_OPTIONS_DICT))
+            options_file.seek(0)
+            options = settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file, False)
+            self.assertEqual(TEST_ENGINE_OPTIONS_DICT, options)
 
-    # TODO tests for saving to file with nice formatting
+    def test_load_engine_options__modified_options__after_save__loads_modified_options(self):
+        with tempfile.NamedTemporaryFile(mode='r+') as options_file:
+            modified_options = {'string_none': 'test', 'spin': 100, 'combo': 'two', 'check_true': False}
+            options_file.write(settings_loader.engine_options_file_string(TEST_ENGINE_OPTIONS, modified_options))
+            options_file.seek(0)
+            options = settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file)
+            self.assertEqual(modified_options, options)
+
+    def test_load_engine_options__exlucde_defaults_false__modified_options__after_save__loads_modified_options(self):
+        with tempfile.NamedTemporaryFile(mode='r+') as options_file:
+            modified_options = {'string_none': 'test', 'spin': 100, 'combo': 'two', 'check_true': False}
+            options_file.write(settings_loader.engine_options_file_string(TEST_ENGINE_OPTIONS, modified_options))
+            options_file.seek(0)
+            options = settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file, False)
+            all_options = {key: modified_options['key'] if key in modified_options else value
+                           for key, value in TEST_ENGINE_OPTIONS_DICT.items()}
+            self.assertEqual(all_options, options)
+
+    def test_load_engine_options__after_save__default_option_added__loads_updated_options(self):
+        with tempfile.NamedTemporaryFile(mode='r+') as options_file:
+            options_file.write(
+                settings_loader.engine_options_file_string(TEST_ENGINE_OPTIONS, TEST_ENGINE_OPTIONS_DICT))
+            options_file.seek(0)
+            updated_default_options = TEST_ENGINE_OPTIONS.copy()
+            updated_default_options.append(chess.engine.Option('new', 'string', None, None, None, None))
+            options = settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file, False)
+            expected_options = TEST_ENGINE_OPTIONS_DICT.copy()
+            expected_options['new'] = ''
+            self.assertEqual(expected_options, options)
+
+    def test_engine_options_file_string__default_options(self):
+        expected_file_string = (
+            'string_none=                         # type=string\n'
+            'string_blank=                        # type=string\n'
+            'string_empty=<empty>                 # type=string\n'
+            'string_something=something           # type=string\n'
+            'spin=0                               # type=spin, min=-100, max=100\n'
+            'combo=one                            # type=combo, var=[\'one\', \'two\', \'three\']\n'
+            'check_true=True                      # type=check\n'
+            'check_false=False                    # type=check\n')
+        self.assertEqual(expected_file_string,
+                         settings_loader.engine_options_file_string(TEST_ENGINE_OPTIONS, TEST_ENGINE_OPTIONS_DICT))
+
+    def test_engine_options_file_string__longer_string__more_whitespace(self):
+        expected_file_string = (
+            'string_none=                                       # type=string\n'
+            'string_blank=                                      # type=string\n'
+            'string_empty=<empty>                               # type=string\n'
+            'string_something=this is a longer string           # type=string\n'
+            'spin=0                                             # type=spin, min=-100, max=100\n'
+            'combo=one                                          # type=combo, var=[\'one\', \'two\', \'three\']\n'
+            'check_true=True                                    # type=check\n'
+            'check_false=False                                  # type=check\n')
+        modified_options = TEST_ENGINE_OPTIONS_DICT.copy()
+        modified_options['string_something'] = 'this is a longer string'
+        self.assertEqual(expected_file_string,
+                         settings_loader.engine_options_file_string(TEST_ENGINE_OPTIONS, modified_options))
+
+    def test_engine_options__duplicate_option__error_when_loading(self):
+        with self.assertRaises(ValueError) as error:
+            with tempfile.NamedTemporaryFile(mode='r+') as options_file:
+                file_string = (
+                    'string_none=           # type=string\n'
+                    'string_none=           # type=string\n')
+                options_file.write(file_string)
+                options_file.seek(0)
+        self.assertTrue('Duplicate engine options [\'string_none\']' in str(error.exception))
+
+    def test_engine_options__multiple_duplicate_option__error_when_loading(self):
+        with self.assertRaises(ValueError) as error:
+            with tempfile.NamedTemporaryFile(mode='r+') as options_file:
+                file_string = (
+                    'string_none=            # type=string\n'
+                    'string_none=            # type=string\n'
+                    'string_blank=           # type=string\n'
+                    'string_blank=           # type=string\n')
+                options_file.write(file_string)
+                options_file.seek(0)
+        self.assertTrue('Duplicate engine options [\'string_none\', \'string_blank\']' in str(error.exception))
+
+    def test_check_engine_options__managed_option(self):
+        with self.assertRaises(ValueError) as error:
+            options = TEST_ENGINE_OPTIONS_DICT.copy()
+            options['uci_chess960'] = True
+            options['uci_variant'] = None
+            options['multipv'] = 2
+            options['ponder'] = True
+            settings_loader.check_engine_options(TEST_ENGINE_OPTIONS, options)
+        error_msg = 'Cannot set managed options [\'uci_chess960\', \'uci_variant\', \'multipv\', \'ponder\']'
+        self.assertTrue(error_msg in str(error.exception))
+
+    def test_check_engine_options__button_option(self):
+        with self.assertRaises(ValueError) as error:
+            options = TEST_ENGINE_OPTIONS_DICT.copy()
+            options['button1'] = None
+        self.assertTrue('Cannot set button options [\'button1\']' in str(error.exception))
+
+    def test_check_engine_options__multiple_button_option(self):
+        with self.assertRaises(ValueError) as error:
+            options = TEST_ENGINE_OPTIONS_DICT.copy()
+            options['button1'] = None
+            options['button2'] = None
+        self.assertTrue('Cannot set button options [\'button1\', \'button2\']' in str(error.exception))
+
+    def test_check_engine_options__spin_type__value_out_of_range(self):
+        with self.assertRaises(ValueError) as error:
+            options = TEST_ENGINE_OPTIONS_DICT.copy()
+            options['spin'] = -101
+            settings_loader.check_engine_options(TEST_ENGINE_OPTIONS, options)
+        self.assertTrue('Value \'-101\' for \'spin\' not in range [-100, 100]' in str(error.exception))
+
+    def test_check_engine_options__spin_type__not_integer(self):
+        with self.assertRaises(ValueError) as error:
+            options = TEST_ENGINE_OPTIONS_DICT.copy()
+            options['spin'] = 'test'
+            settings_loader.check_engine_options(TEST_ENGINE_OPTIONS, options)
+        self.assertTrue('Value \'test\' for \'spin\' not an integer' in str(error.exception))
+
+    def test_check_engine_options__combo_type__not_in_list(self):
+        with self.assertRaises(ValueError) as error:
+            options = TEST_ENGINE_OPTIONS_DICT.copy()
+            options['combo'] = 'four'
+            settings_loader.check_engine_options(TEST_ENGINE_OPTIONS, options)
+        self.assertTrue('Value \'four\' for \'combo\' not in [\'one\', \'two\', \'three\']' in str(error.exception))

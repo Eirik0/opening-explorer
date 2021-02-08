@@ -71,12 +71,26 @@ def check_engine_settings(engine_settings_list):
         raise ValueError('\'nickname\' not unique %s' % (duplicates))
 
 
-# def _uci_options_from_file(file):
-#     pass
+def load_engine_options_simple(file):
+    return dict()
 
 
-# def load_engine_options(default_options, options_file, exclude_default_values=True):
-#     pass
+def _merge_engine_options(default_options, options_file, exclude_default_values=True):
+    return dict()
+
+
+def load_engine_options(default_options, options_file, exclude_default_values=True):
+    engine_options = load_engine_options_simple(options_file)
+    return _merge_engine_options(default_options, engine_options, exclude_default_values)
+
+
+def check_engine_options(default_options, user_options):
+    pass
+
+
+def engine_options_file_string(default_options, user_options):
+    lines = []
+    return '\n'.join(lines)
 
 
 # pylint: disable=too-many-locals,too-many-branches
