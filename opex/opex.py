@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import json
+import os
 
 import chess
 import chess.engine
@@ -63,7 +64,17 @@ def search(db, engine, board):
     back_propagate(position)
 
 
+def ensure_file_exists(file_path):
+    parent_directory = os.path.dirname(file_path)
+    if parent_directory != '' and not os.path.isdir(parent_directory):
+        os.mkdir(parent_directory)
+    if not os.path.isfile(file_path):
+        with open(file_path, 'w+') as file:
+            file.write('')
+
+
 def load_settings():
+    ensure_file_exists('opex-settings.json')
     with open('opex-settings.json', 'r+') as settings_file:
         settings_simple = settings_loader.load_settings_simple(settings_file)
         settings_file.seek(0)
@@ -75,13 +86,35 @@ def load_settings():
         return settings_loader.load_settings(settings_file)
 
 
+def load_all_engine_options(settings):
+    engine_options = dict()
+    for engine_setting in settings['engines']:
+        nickname = engine_setting['nickname']
+        path = engine_setting['path']
+        with chess.engine.SimpleEngine.popen_uci(path) as uci_engine:
+            default_options = [option for _, option in uci_engine.options.items()]
+        options_file_path = '%s\\%s.uci' % (settings['engine_options_directory'], nickname)
+        ensure_file_exists(options_file_path)
+        with open(options_file_path, 'r+') as options_file:
+            simple_options = settings_loader.load_engine_options_simple(options_file)
+            settings_loader.check_engine_options(default_options, simple_options)
+            options_file.seek(0)
+            options_with_defaults = settings_loader.load_engine_options(default_options, options_file, False)
+            options_file.seek(0)
+            if simple_options != options_with_defaults:
+                options_file.writelines(
+                    settings_loader.engine_options_file_lines(default_options, options_with_defaults))
+                options_file.seek(0)
+            engine_options[nickname] = settings_loader.load_engine_options(default_options, options_file)
+    return engine_options
+
+
 def main():
     settings = load_settings()
-    print(settings)
 
-    settings_loader.check_engine_settings(settings)
+    settings_loader.check_engine_settings(settings['engines'])
 
-    engine_options = settings_loader.load_all_engine_options(settings)
+    engine_options = load_all_engine_options(settings)
     first_engine_settings = settings['engines'][0]
 
     with open_engine_with_options(
