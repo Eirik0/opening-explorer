@@ -2,18 +2,20 @@ import os
 import sqlite3
 import sys
 
-from opex import analysis
+from typing import Optional, List
+
+from . import analysis
 
 
 class Database:
     @staticmethod
-    def _dict_factory(cursor, row):
+    def _dict_factory(cursor: sqlite3.Cursor, row: sqlite3.Row) -> dict:
         named_columns = dict()
         for idx, col in enumerate(cursor.description):
             named_columns[col[0]] = row[idx]
         return named_columns
 
-    def _initialize_db(self):
+    def _initialize_db(self) -> None:
         cursor = self._db.cursor()
 
         # Expect to find db.schema in same directory as this module
@@ -23,7 +25,7 @@ class Database:
         with open(schema_path) as schema:
             cursor.executescript(schema.read())
 
-    def __init__(self, path=None):
+    def __init__(self, path:Optional[str]=None) -> None:
         if path is None:
             path = ":memory:"
 
@@ -31,16 +33,16 @@ class Database:
         self._db.row_factory = Database._dict_factory
         self._initialize_db()
 
-    def close(self):
+    def close(self) -> None:
         self._db.close()
 
-    def __enter__(self):
+    def __enter__(self) -> Database:
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type, value, traceback) -> None:
         self.close()
 
-    def insert_position(self, position, parent_id):
+    def insert_position(self, position: analysis.Position, parent_id: Optional[int]) -> analysis.Position:
         self._db.execute('BEGIN')
 
         child_id = self._db.execute("INSERT INTO openings VALUES (?, ?, ?, ?, ?, ?)", (
@@ -61,21 +63,21 @@ class Database:
         return position
 
     @staticmethod
-    def _rows_to_positions(cursor):
+    def _rows_to_positions(cursor: sqlite3.Cursor) -> List[analysis.Position]:
         positions = []
         for row in cursor:
             positions.append(analysis.Position(
                 row['id'], row['fen'], row['move'], row['score'], row['depth'], row['pv']))
         return positions
 
-    def get_position(self, fen):
+    def get_position(self, fen: str) -> Optional[analysis.Position]:
         cursor = self._db.execute(
             "SELECT * FROM openings WHERE fen = ?", (fen,))
         positions = Database._rows_to_positions(cursor)
         assert len(positions) <= 1
         return None if len(positions) == 0 else positions[0]
 
-    def get_child_positions(self, parent_id):
+    def get_child_positions(self, parent_id: int) -> List[analysis.Position]:
         cursor = self._db.execute(
             "SELECT openings.* FROM game_dag "
             " JOIN openings "
@@ -84,7 +86,7 @@ class Database:
             (parent_id,))
         return Database._rows_to_positions(cursor)
 
-    def update_position(self, position):
+    def update_position(self, position: analysis.Position) -> Optional[analysis.Position]:
         cursor = self._db.execute(
             "UPDATE openings SET score = ?, depth = ?, pv = ? "
             " WHERE id = ?",

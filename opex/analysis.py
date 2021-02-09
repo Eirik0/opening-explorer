@@ -1,5 +1,8 @@
+from typing import Optional
+
 class Position:
-    def __init__(self, id, fen, move, score, depth, pv):
+    # pylint: disable=unsubscriptable-object
+    def __init__(self, id: Optional[int], fen: str, move: str, score: int, depth: int, pv: str) -> None:
         self.id = id
         self.fen = fen
         self.move = move
