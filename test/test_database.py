@@ -18,14 +18,12 @@ class DatabaseTests(unittest.TestCase):
     def test_insert_position(self):
         with database.Database() as db:
             board = chess.Board()
-            id = db.insert_position(analysis.Position(
-                None, board.fen(), None, None, None, None), None)
+            id = db.insert_position(analysis.Position(None, board.fen(), None, None, None, None), None)
             self.assertIsNotNone(id)
 
     def test_get_position(self):
         with database.Database() as db:
             board = chess.Board()
-            insert_position = db.insert_position(analysis.Position(
-                None, board.fen(), None, None, None, None), None)
+            insert_position = db.insert_position(analysis.Position(None, board.fen(), None, None, None, None), None)
             get_position = db.get_position(board.fen())
             self.assertEqual(insert_position.id, get_position.id)

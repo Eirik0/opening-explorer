@@ -106,6 +106,7 @@ def load_engine_options_simple(engine_options_file):
 
 
 def load_engine_options(default_options, options_file, exclude_default_values=True):
+
     def is_empty(value):
         return value is None or value == '<empty>'
 
@@ -127,6 +128,7 @@ def load_engine_options(default_options, options_file, exclude_default_values=Tr
 
 
 def check_engine_options(default_options, engine_options):
+
     def check_check(value):
         if not isinstance(value, bool):
             raise ValueError('Value \'%s\' for \'%s\' not a boolean' % (value, name))
@@ -187,8 +189,9 @@ def engine_options_file_lines(default_options, user_options):
     for option in default_options:
         if option.is_managed() or option.type == 'button':
             continue
-        option_infos.append(_engine_option_string_and_comment(
-            option, user_options[option.name] if option.name in user_options else option.default))
+        option_infos.append(
+            _engine_option_string_and_comment(
+                option, user_options[option.name] if option.name in user_options else option.default))
     max_name_and_val_length = max([len(option_info[0]) for option_info in option_infos])
     lines = []
     for name_and_val, comment in option_infos:
