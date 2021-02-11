@@ -11,6 +11,8 @@ env:
   test-command-line: -m unittest discover -v -s ./test -p test_*.py
   # This should be the same as `fail_under` under `[report]` in `.coveragerc`
   coverage-minimum-percent: 0
+  # Directories containing files to format and lint
+  source-dirs: opex test
 
 jobs:
   run-tests:
@@ -46,22 +48,27 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    # Formatting
+    - name: Format with yapf
+      run: |
+        yapf -d -r -p -vv ${{ env.source-dirs }}
+
     # Linting
     - name: Lint with pylint
       run: |
-        pylint -v opex test
+        pylint -v ${{ env.source-dirs }}
 
     # Test without coverage
     - name: Run unittest without coverage
       if: ${{ !matrix.should-run-coverage }}
       run: |
-        python ${{ env.test.command-line }}
+        python ${{ env.test-command-line }}
 
     # Or test with coverage and subsequent related actions
     - name: Run unittest with coverage
       if: ${{ matrix.should-run-coverage }}
       run: |
-        coverage run ${{ env.test.command-line }}
+        coverage run ${{ env.test-command-line }}
 
     - name: Generate coverage xml
       if: ${{ matrix.should-run-coverage }}
