@@ -5,6 +5,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+    types: [ opened, reopened, synchronize ]
 
 env:
   # This should be the same as `command_line` under `[run]` in `.coveragerc`
@@ -77,7 +78,7 @@ jobs:
         coverage xml --fail-under 0
 
     - name: Comment coverage on PR
-      if: ${{ matrix.should-run-coverage }}
+      if: github.event_name == 'pull_request' && ${{ matrix.should-run-coverage }}
       uses: 5monkeys/cobertura-action@v7
       with:
         path: coverage.xml
@@ -98,4 +99,4 @@ jobs:
     - name: Check minimum coverage
       if: ${{ matrix.should-run-coverage }}
       run: |
-        coverage xml --fail-under ${{ env.coverage-minimum-percent }}
+        coverage report --fail-under ${{ env.coverage-minimum-percent }}

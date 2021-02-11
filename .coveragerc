@@ -16,6 +16,14 @@ branch = True
 # specified here, other than `-m` to indicate the module to run.
 command_line = -m unittest discover -v -s ./test -p test_*.py
 
+# The name of a strategy for setting the dynamic context during execution. The
+# `dynamic_context` setting has only one option now. Set it to `test_function`
+# to start a new dynamic context for every test function. Each test function
+# you run will be considered a separate dynamic context, and coverage data will
+# be segregated for each. A test function is any function whose name starts
+# with “test”.
+#dynamic_context = test_function
+
 # A list of file name patterns, the files to include in measurement or
 # reporting. Ignored if `source` is set.
 #include =
@@ -71,8 +79,17 @@ fail_under = 0
 #precision = 0
 
 # When running a summary report, show missing lines.
-#show_missing = False
+show_missing = True
 
 # Sort the text report by the named column. Allowed values are “Name”, “Stmts”,
 # “Miss”, “Branch”, “BrPart”, or “Cover”.
 #sort = "Name"
+
+
+# Values particular to HTML reporting. The values in the [report] section also apply
+# to HTML output, where appropriate.
+[html]
+
+# Should the HTML report include an indication on each line of which contexts
+# executed the line.
+show_contexts = True
