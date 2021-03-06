@@ -11,7 +11,7 @@ This will install all the dependencies. Running the program once will generate t
 
     python -m opex
 
-Alternatively, edit `settings.json.default` and rename to `settings.json`. Point that file at your UCI engine, and run again to generate `output_directory/<nickname>.uci`, which will contain default engine settings.
+Alternatively, edit `opex-default-settings.json` and rename to `opex-settings.json`. Point that file at your UCI engine, and run again to generate `engines/<nickname>.uci`, which will contain default engine settings.
 
 ## Testing
 To run tests with coverage and report findings:

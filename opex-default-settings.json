@@ -1,5 +1,6 @@
 {
-    "output_directory": "",
+    "data_directory": "data",
+    "engine_options_directory": "engines",
     "engines": [
         {
             "nickname": "",

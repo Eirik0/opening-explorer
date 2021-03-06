@@ -1,6 +1,7 @@
 .venv/
 __pycache__/
-output_directory/
-settings.json
+data/
+engines/
+opex-settings.json
 .coverage
 coverage.xml
