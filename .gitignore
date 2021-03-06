@@ -1,11 +1,17 @@
 # Virtual environment and bytecode
 .venv/
 __pycache__/
+<<<<<<< HEAD
 # Settings and default data directories
 opex-settings.json
 data/
 engines/
 # Artifacts from coverage
+=======
+data/
+engines/
+opex-settings.json
+>>>>>>> master
 .coverage
 coverage.xml
 htmlcov
