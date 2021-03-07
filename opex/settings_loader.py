@@ -3,6 +3,8 @@ import os.path
 
 DEFAULT_SETTINGS_FILE_NAME = 'opex-default-settings.json'
 
+## Methods for loading json settings
+
 
 def _json_from_file(file):
     return json.load(file) if os.path.getsize(file.name) > 0 else dict()
@@ -46,13 +48,16 @@ def load_settings(user_settings_file, use_default_values=True):
     return _merge_settings(default_settings, user_settings, use_default_values)
 
 
+## Methods for loading engine options
+
+
 def _raise_if_duplicates(counts):
     duplicates = []
     for nickname, count in counts.items():
         if count > 1:
             duplicates.append(nickname)
     if len(duplicates) > 0:
-        raise ValueError('\'nickname\' not unique %s' % (duplicates))
+        raise ValueError(f'\'nickname\' not unique {duplicates}')
 
 
 def check_engine_settings(engine_settings_list):
@@ -62,9 +67,9 @@ def check_engine_settings(engine_settings_list):
     for i, engine_settings in enumerate(engine_settings_list):
         for key in ['nickname', 'path']:
             if key not in engine_settings:
-                raise ValueError('Engine[%d] missing \'%s\'' % (i, key))
+                raise ValueError(f'Engine[{i}] missing \'{key}\'')
             if engine_settings[key] == '':
-                raise ValueError('Engine[%d] missing value for \'%s\'' % (i, key))
+                raise ValueError(f'Engine[{i}] missing value for \'{key}\'')
         # Count duplicates
         nickname = engine_settings['nickname']
         if nickname not in nickname_counts:
@@ -82,12 +87,12 @@ def load_engine_options_simple(engine_options_file):
             continue
         line = line.split('#')[0].rstrip()
         if '=' not in line:
-            raise ValueError('Missing \'=\' on line \'%s\'' % (line_in_file))
+            raise ValueError(f'Missing \'=\' on line \'{line_in_file}\'')
         if line.startswith('='):
-            raise ValueError('Missing option name on line \'%s\'' % (line_in_file))
+            raise ValueError(f'Missing option name on line \'{line_in_file}\'')
         (name, value) = line.split('=', maxsplit=1)
         if name in options:
-            raise ValueError('Duplicate engine option \'%s\'' % (name))
+            raise ValueError(f'Duplicate engine option \'{name}\'')
         lower_case_value = value.lower()
         if lower_case_value in ('true', 'false'):
             value = lower_case_value == 'true'
@@ -131,17 +136,17 @@ def check_engine_options(default_options, engine_options):
 
     def check_check(value):
         if not isinstance(value, bool):
-            raise ValueError('Value \'%s\' for \'%s\' not a boolean' % (value, name))
+            raise ValueError(f'Value \'{value}\' for \'{name}\' not a boolean')
 
     def check_spin(option, value):
         if not isinstance(value, int):
-            raise ValueError('Value \'%s\' for \'%s\' not an integer' % (value, name))
+            raise ValueError(f'Value \'{value}\' for \'{name}\' not an integer')
         if value < option.min or value > option.max:
-            raise ValueError('Value \'%d\' for \'%s\' not in range [%d, %d]' % (value, name, option.min, option.max))
+            raise ValueError(f'Value \'{value}\' for \'{name}\' not in range [{option.min}, {option.max}]')
 
     def check_combo(option, value):
         if value not in option.var:
-            raise ValueError('Value \'%s\' for \'%s\' not in %s' % (value, name, option.var))
+            raise ValueError(f'Value \'{value}\' for \'{name}\' not in {option.var}')
 
     managed_options = []
     button_options = []
@@ -165,22 +170,24 @@ def check_engine_options(default_options, engine_options):
             check_combo(option, value)
         found_names.add(name)
     if len(managed_options) > 0:
-        raise ValueError('Cannot set managed options %s' % (managed_options))
+        raise ValueError(f'Cannot set managed options {managed_options}')
     if len(button_options) > 0:
-        raise ValueError('Cannot set button options %s' % (button_options))
+        raise ValueError(f'Cannot set button options {button_options}')
     unknown_names = [name for name in engine_options if name not in found_names]
     if len(unknown_names) > 0:
-        raise ValueError('Unknown options %s' % (unknown_names))
+        raise ValueError(f'Unknown options {unknown_names}')
 
 
 def _engine_option_string_and_comment(option, value):
-    name_equals_val = '%s=%s' % (option.name, value if value is not None else '')
+    if value is None:
+        value = ''
+    name_equals_val = f'{option.name}={value}'
     if option.type == 'check' or option.type == 'string' or option.type == 'button':
-        return (name_equals_val, 'type=%s' % option.type)
+        return (name_equals_val, f'type={option.type}')
     if option.type == 'spin':
-        return (name_equals_val, "type=spin, min=%d, max=%d" % (option.min, option.max))
+        return (name_equals_val, f'type=spin, min={option.min}, max={option.max}')
     if option.type == 'combo':
-        return (name_equals_val, "type=combo, var=%s" % (option.var))
+        return (name_equals_val, f'type=combo, var={option.var}')
     return (name_equals_val, 'type=unknown')
 
 
@@ -195,5 +202,5 @@ def engine_options_file_lines(default_options, user_options):
     max_name_and_val_length = max([len(option_info[0]) for option_info in option_infos])
     lines = []
     for name_and_val, comment in option_infos:
-        lines.append('%s # %s\n' % (name_and_val.ljust(max_name_and_val_length + 10), comment))
+        lines.append(f'{name_and_val.ljust(max_name_and_val_length + 10)} # {comment}\n')
     return lines

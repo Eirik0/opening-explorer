@@ -91,7 +91,8 @@ def load_all_engine_options(settings):
         path = engine_setting['path']
         with chess.engine.SimpleEngine.popen_uci(path) as uci_engine:
             default_options = [option for _, option in uci_engine.options.items()]
-        options_file_path = '%s\\%s.uci' % (settings['engine_options_directory'], nickname)
+        engine_options_directory = settings['engine_options_directory']
+        options_file_path = f'{engine_options_directory}\\{nickname.uci}'
         ensure_file_exists(options_file_path)
         with open(options_file_path, 'r+') as options_file:
             simple_options = settings_loader.load_engine_options_simple(options_file)
