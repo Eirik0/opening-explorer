@@ -3,6 +3,8 @@ import os.path
 
 DEFAULT_SETTINGS_FILE_NAME = 'opex-default-settings.json'
 
+## Methods for loading json settings
+
 
 def _json_from_file(file):
     return json.load(file) if os.path.getsize(file.name) > 0 else dict()
@@ -44,6 +46,9 @@ def load_settings(user_settings_file, use_default_values=True):
     default_settings = load_default_settings()
     user_settings = load_settings_simple(user_settings_file)
     return _merge_settings(default_settings, user_settings, use_default_values)
+
+
+## Methods for loading engine options
 
 
 def _raise_if_duplicates(counts):
