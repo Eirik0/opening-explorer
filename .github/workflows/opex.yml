@@ -2,9 +2,9 @@ name: opex
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
     types: [ opened, reopened, synchronize ]
 
 env:
@@ -32,48 +32,48 @@ jobs:
 
     steps:
     # Setup
-    - name: Checkout repo
+    - name: 🛒 Checkout repo
       uses: actions/checkout@v2
 
-    - name: Set up Python
+    - name: 🐍 Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies
+    - name: 🔨 Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
     # Formatting
-    - name: Format with yapf
+    - name: 🧹 Format with yapf
       run: |
         yapf -d -r -p -vv ${{ env.source-dirs }}
 
     # Linting
-    - name: Lint with pylint
+    - name: ✨ Lint with pylint
       run: |
         pylint -v ${{ env.source-dirs }}
 
     # Test without coverage
-    - name: Run unittest without coverage
+    - name: 🧪 Run unittest without coverage
       if: ${{ !matrix.should-run-coverage }}
       run: |
         python ${{ env.test-command-line }}
 
     # Or test with coverage and subsequent related actions
-    - name: Run unittest with coverage
+    - name: ☂️ Run unittest with coverage
       if: ${{ matrix.should-run-coverage }}
       run: |
         coverage run ${{ env.test-command-line }}
 
-    - name: Generate coverage xml
+    - name: 🖨️ Generate coverage xml
       if: ${{ matrix.should-run-coverage }}
       # Override default `fail_under`
       run: |
         coverage xml --fail-under 0
 
-    - name: Comment coverage on PR
+    - name: 🐒 Comment coverage on PR
       if: ${{ matrix.should-run-coverage && github.event_name == 'pull_request' }}
       uses: 5monkeys/cobertura-action@v7
       with:
@@ -85,14 +85,14 @@ jobs:
         show_missing: true
         minimum_coverage: ${{ env.coverage-minimum-percent }}
 
-    - name: Upload coverage
+    - name: 📯 Upload coverage
       if: ${{ matrix.should-run-coverage }}
       uses: actions/upload-artifact@v2
       with:
         name: coverage
         path: coverage.xml
 
-    - name: Check minimum coverage
+    - name: 🛂 Check minimum coverage
       if: ${{ matrix.should-run-coverage }}
       run: |
         coverage report --fail-under ${{ env.coverage-minimum-percent }}
