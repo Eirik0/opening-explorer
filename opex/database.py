@@ -6,6 +6,7 @@ from opex import analysis
 
 
 class Database:
+
     @staticmethod
     def _dict_factory(cursor, row):
         named_columns = dict()
@@ -43,16 +44,11 @@ class Database:
     def insert_position(self, position, parent_id):
         self._db.execute('BEGIN')
 
-        child_id = self._db.execute("INSERT INTO openings VALUES (?, ?, ?, ?, ?, ?)", (
-            None,
-            position.fen,
-            position.move,
-            position.score,
-            position.depth,
-            position.pv)).lastrowid
+        child_id = self._db.execute(
+            "INSERT INTO openings VALUES (?, ?, ?, ?, ?, ?)",
+            (None, position.fen, position.move, position.score, position.depth, position.pv)).lastrowid
 
-        self._db.execute("INSERT INTO game_dag VALUES (?, ?)",
-                         (parent_id, child_id))
+        self._db.execute("INSERT INTO game_dag VALUES (?, ?)", (parent_id, child_id))
 
         position.id = child_id
 
@@ -64,13 +60,12 @@ class Database:
     def _rows_to_positions(cursor):
         positions = []
         for row in cursor:
-            positions.append(analysis.Position(
-                row['id'], row['fen'], row['move'], row['score'], row['depth'], row['pv']))
+            positions.append(
+                analysis.Position(row['id'], row['fen'], row['move'], row['score'], row['depth'], row['pv']))
         return positions
 
     def get_position(self, fen):
-        cursor = self._db.execute(
-            "SELECT * FROM openings WHERE fen = ?", (fen,))
+        cursor = self._db.execute("SELECT * FROM openings WHERE fen = ?", (fen,))
         positions = Database._rows_to_positions(cursor)
         assert len(positions) <= 1
         return None if len(positions) == 0 else positions[0]
@@ -80,15 +75,12 @@ class Database:
             "SELECT openings.* FROM game_dag "
             " JOIN openings "
             " ON game_dag.child_id = openings.id "
-            " WHERE game_dag.parent_id = ? ",
-            (parent_id,))
+            " WHERE game_dag.parent_id = ? ", (parent_id,))
         return Database._rows_to_positions(cursor)
 
     def update_position(self, position):
-        cursor = self._db.execute(
-            "UPDATE openings SET score = ?, depth = ?, pv = ? "
-            " WHERE id = ?",
-            (position.score, position.depth, position.pv, position.id))
+        cursor = self._db.execute("UPDATE openings SET score = ?, depth = ?, pv = ? "
+                                  " WHERE id = ?", (position.score, position.depth, position.pv, position.id))
         positions = Database._rows_to_positions(cursor)
         assert len(positions) <= 1
         return None if len(positions) == 0 else positions[0]

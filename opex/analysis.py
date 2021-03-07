@@ -1,4 +1,5 @@
 class Position:
+
     def __init__(self, id, fen, move, score, depth, pv):
         self.id = id
         self.fen = fen

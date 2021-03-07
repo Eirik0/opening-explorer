@@ -56,9 +56,7 @@ def search(db, engine, board):
         # TODO mating score
         score = info['score'].relative.score()
         pv = ' '.join([str(move) for move in info['pv']])
-        db.insert_position(
-            analysis.Position(None, board.fen(), move_str, score, 20, pv),
-            position.id)
+        db.insert_position(analysis.Position(None, board.fen(), move_str, score, 20, pv), position.id)
         board.pop()
 
     back_propagate(position)

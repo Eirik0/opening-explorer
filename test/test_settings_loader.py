@@ -8,33 +8,38 @@ import chess.engine
 from opex import settings_loader
 
 # Option(name(str), type(str), default(str, int, bool, None), min(None, int), max(None, int), var(None, List[int]))
-TEST_ENGINE_OPTIONS = [chess.engine.Option('uci_chess960', 'check', False, None, None, None),  # managed
-                       chess.engine.Option('uci_variant', 'string', None, None, None, None),  # managed
-                       chess.engine.Option('multipv', 'spin', 1, 1, 500, None),  # managed
-                       chess.engine.Option('ponder', 'check', False, None, None, None),  # managed
-                       chess.engine.Option('string_none', 'string', None, None, None, None),
-                       chess.engine.Option('string_blank', 'string', '', None, None, None),
-                       chess.engine.Option('string_empty', 'string', '<empty>', None, None, None),
-                       chess.engine.Option('string_something', 'string', 'something', None, None, None),
-                       chess.engine.Option('spin', 'spin', 0, -100, 100, None),
-                       chess.engine.Option('combo', 'combo', 'one', None, None, ['one', 'two', 'three']),
-                       chess.engine.Option('button1', 'button', None, None, None, None),
-                       chess.engine.Option('button2', 'button', None, None, None, None),
-                       chess.engine.Option('check_true', 'check', True, None, None, None),
-                       chess.engine.Option('check_false', 'check', False, None, None, None)]
+TEST_ENGINE_OPTIONS = [
+    chess.engine.Option('uci_chess960', 'check', False, None, None, None),  # managed
+    chess.engine.Option('uci_variant', 'string', None, None, None, None),  # managed
+    chess.engine.Option('multipv', 'spin', 1, 1, 500, None),  # managed
+    chess.engine.Option('ponder', 'check', False, None, None, None),  # managed
+    chess.engine.Option('string_none', 'string', None, None, None, None),
+    chess.engine.Option('string_blank', 'string', '', None, None, None),
+    chess.engine.Option('string_empty', 'string', '<empty>', None, None, None),
+    chess.engine.Option('string_something', 'string', 'something', None, None, None),
+    chess.engine.Option('spin', 'spin', 0, -100, 100, None),
+    chess.engine.Option('combo', 'combo', 'one', None, None, ['one', 'two', 'three']),
+    chess.engine.Option('button1', 'button', None, None, None, None),
+    chess.engine.Option('button2', 'button', None, None, None, None),
+    chess.engine.Option('check_true', 'check', True, None, None, None),
+    chess.engine.Option('check_false', 'check', False, None, None, None)
+]
 
 # Does not include managed options or options with type 'button'
-TEST_ENGINE_OPTIONS_DICT = {'string_none': '',
-                            'string_blank': '',
-                            'string_empty': '<empty>',
-                            'string_something': 'something',
-                            'spin': 0,
-                            'combo': 'one',
-                            'check_true': True,
-                            'check_false': False}
+TEST_ENGINE_OPTIONS_DICT = {
+    'string_none': '',
+    'string_blank': '',
+    'string_empty': '<empty>',
+    'string_something': 'something',
+    'spin': 0,
+    'combo': 'one',
+    'check_true': True,
+    'check_false': False
+}
 
 
 class SettingsLoaderTests(unittest.TestCase):
+
     def test_default_settings_file__exits(self):
         self.assertTrue(os.path.isfile(settings_loader.DEFAULT_SETTINGS_FILE_NAME))
 
@@ -135,22 +140,44 @@ class SettingsLoaderTests(unittest.TestCase):
 
     def test_check_engine_settings__second_engine_path_not_set(self):
         with self.assertRaises(ValueError) as error:
-            settings_loader.check_engine_settings(
-                [{'nickname': 'test', 'path': 'test'}, {'nickname': 'test', 'path': ''}])
+            settings_loader.check_engine_settings([{
+                'nickname': 'test',
+                'path': 'test'
+            }, {
+                'nickname': 'test',
+                'path': ''
+            }])
         self.assertTrue('Engine[1] missing value for \'path\'' in str(error.exception))
 
     def test_check_engine_settings__duplicate_nicknames(self):
         with self.assertRaises(ValueError) as error:
-            settings_loader.check_engine_settings(
-                [{'nickname': 'test', 'path': 'test'}, {'nickname': 'test', 'path': 'test'}])
+            settings_loader.check_engine_settings([{
+                'nickname': 'test',
+                'path': 'test'
+            }, {
+                'nickname': 'test',
+                'path': 'test'
+            }])
         self.assertTrue('\'nickname\' not unique [\'test\']' in str(error.exception))
 
     def test_check_engine_settings__multiple_duplicate_nicknames(self):
         with self.assertRaises(ValueError) as error:
-            settings_loader.check_engine_settings(
-                [{'nickname': 'test1', 'path': 'test'}, {'nickname': 'test1', 'path': 'test'},
-                 {'nickname': 'test2', 'path': 'test'},
-                 {'nickname': 'test3', 'path': 'test'}, {'nickname': 'test3', 'path': 'test'}])
+            settings_loader.check_engine_settings([{
+                'nickname': 'test1',
+                'path': 'test'
+            }, {
+                'nickname': 'test1',
+                'path': 'test'
+            }, {
+                'nickname': 'test2',
+                'path': 'test'
+            }, {
+                'nickname': 'test3',
+                'path': 'test'
+            }, {
+                'nickname': 'test3',
+                'path': 'test'
+            }])
         self.assertTrue('\'nickname\' not unique [\'test1\', \'test3\']' in str(error.exception))
 
     def test_load_engine_options__empty_file__loads_empty_options(self):
@@ -193,8 +220,10 @@ class SettingsLoaderTests(unittest.TestCase):
             options_file.writelines(settings_loader.engine_options_file_lines(TEST_ENGINE_OPTIONS, modified_options))
             options_file.seek(0)
             options = settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file, False)
-            all_options = {name: modified_options[name] if name in modified_options else value
-                           for name, value in TEST_ENGINE_OPTIONS_DICT.items()}
+            all_options = {
+                name: modified_options[name] if name in modified_options else value
+                for name, value in TEST_ENGINE_OPTIONS_DICT.items()
+            }
             self.assertEqual(all_options, options)
 
     def test_load_engine_options__empty_changed_to_blank__loads_empty_options(self):
@@ -233,7 +262,8 @@ class SettingsLoaderTests(unittest.TestCase):
                 '\n',
                 '#string_none=123            # type=string\n',
                 '\n',
-                'check_true=False           # type=string\n']
+                'check_true=False           # type=string\n',
+            ]
             options_file.writelines(file_lines)
             options_file.seek(0)
             self.assertEqual({'check_true': False},
@@ -255,7 +285,8 @@ class SettingsLoaderTests(unittest.TestCase):
             'spin=0                               # type=spin, min=-100, max=100\n',
             'combo=one                            # type=combo, var=[\'one\', \'two\', \'three\']\n',
             'check_true=True                      # type=check\n',
-            'check_false=False                    # type=check\n']
+            'check_false=False                    # type=check\n',
+        ]
         self.assertEqual(expected_file_lines,
                          settings_loader.engine_options_file_lines(TEST_ENGINE_OPTIONS, TEST_ENGINE_OPTIONS_DICT))
 
@@ -268,7 +299,8 @@ class SettingsLoaderTests(unittest.TestCase):
             'spin=0                                             # type=spin, min=-100, max=100\n',
             'combo=one                                          # type=combo, var=[\'one\', \'two\', \'three\']\n',
             'check_true=True                                    # type=check\n',
-            'check_false=False                                  # type=check\n']
+            'check_false=False                                  # type=check\n',
+        ]
         modified_options = TEST_ENGINE_OPTIONS_DICT.copy()
         modified_options['string_something'] = 'this is a longer string'
         self.assertEqual(expected_file_lines,
@@ -279,7 +311,8 @@ class SettingsLoaderTests(unittest.TestCase):
             with tempfile.NamedTemporaryFile(mode='r+') as options_file:
                 file_lines = [
                     'string_none=           # type=string\n',
-                    'string_none=           # type=string\n']
+                    'string_none=           # type=string\n',
+                ]
                 options_file.writelines(file_lines)
                 options_file.seek(0)
                 settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file)
