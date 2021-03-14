@@ -30,7 +30,7 @@ For each engine in the settings file, `opex` will generate an engine options fil
 
 Installing all development dependencies
 
-    pip install -r requirements/requirements-all.txt
+    pip install -r requirements/requirements-dev.txt
 
 ### Testing
 
