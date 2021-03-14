@@ -20,9 +20,9 @@ Running the program once will generate the settings file.
 
 Alternatively, copy `opex-default-settings.json` and rename it to `opex-settings.json`. 
 
-The explorer will not work without a UCI compliant chess engine.Edit the settings file to reference a UCI engine, and run `opex` again.
+The explorer will not work without a UCI compliant chess engine. Edit the settings file to reference a UCI engine and run `opex` again.
 
-For each engine in the settings file `opex` will generate an engine options file named `engines/<nickname>.uci`. This file can be edited to include engine options other than the default.
+For each engine in the settings file, `opex` will generate an engine options file named `engines/<nickname>.uci`. This file can be edited to include engine options other than the default.
 
 ## Contributing
 
