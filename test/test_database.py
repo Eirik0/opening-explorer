@@ -2,7 +2,8 @@ import unittest
 
 import chess
 
-from opex import analysis, database
+from opex import analysis
+from opex import database
 
 
 class DatabaseTests(unittest.TestCase):

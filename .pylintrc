@@ -66,7 +66,8 @@ disable=missing-module-docstring,
       redefined-builtin,
       too-many-arguments,
       too-few-public-methods,
-      too-many-public-methods
+      too-many-public-methods,
+      wrong-import-order
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -502,7 +503,7 @@ int-import-graph=
 known-standard-library=
 
 # Force import order to recognize a module as part of a third party library.
-known-third-party=enchant
+known-third-party=
 
 # Couples of modules and preferred modules, separated by a comma.
 preferred-modules=

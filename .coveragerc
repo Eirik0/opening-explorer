@@ -14,7 +14,7 @@ branch = True
 # The command-line to run your program. This will be used if you run
 # `coverage run`  with no further arguments. Coverage.py options cannot be
 # specified here, other than `-m` to indicate the module to run.
-command_line = -m unittest discover -v -s ./test -p test_*.py
+command_line = -m unittest discover -v --start-directory ./test --pattern test_*.py
 
 # The name of a strategy for setting the dynamic context during execution. The
 # `dynamic_context` setting has only one option now. Set it to `test_function`

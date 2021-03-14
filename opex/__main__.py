@@ -1,3 +1,3 @@
-from . import opex
+from opex import opex
 
 opex.main()
