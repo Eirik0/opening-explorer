@@ -16,6 +16,7 @@ env:
   source-dirs: opex scripts test
 
 jobs:
+  # Run tests on mac, windows, and ubuntu
   check-tests:
     name: 🧪 check-tests / ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -45,6 +46,7 @@ jobs:
       run: |
         python ${{ env.test-command-line }}
 
+  # Check formatting and linting
   check-format:
     name: 🥼 check-format / 🐧 ubuntu
     runs-on: ubuntu-latest
@@ -73,6 +75,7 @@ jobs:
       run: |
         pylint -v ${{ env.source-dirs }}
 
+  # Run coverage and generate artifacts 
   check-coverage:
     name: 🔬 check-coverage / 🐧 ubuntu
     runs-on: ubuntu-latest
@@ -91,16 +94,17 @@ jobs:
         pip install -r requirements.txt
         pip install -r requirements/requirements-coverage.txt
 
-    # Test with coverage
+    # Run tests with coverage
     - name: ☂️ Run unittest with coverage
       run: |
         coverage run ${{ env.test-command-line }}
 
-    - name: 🖨️ Generate coverage xml
-      # Override default `fail_under`
+    # Coverage xml
+    - name: 📜 Generate coverage xml
       run: |
         coverage xml --fail-under 0
 
+    # Comment on PR
     - name: 🐒 Comment coverage on PR
       if: ${{ github.event_name == 'pull_request' }}
       uses: 5monkeys/cobertura-action@v7
@@ -113,12 +117,22 @@ jobs:
         show_missing: true
         minimum_coverage: ${{ env.coverage-minimum-percent }}
 
+    # Coverage html
+    - name: 📚 Generate coverage html
+      run: |
+        coverage html --fail-under 0
+    
+    # Upload coverage artifacts
     - name: 📯 Upload coverage
       uses: actions/upload-artifact@v2
       with:
         name: coverage
-        path: coverage.xml
+        path: |
+          .coverage
+          coverage.xml
+          htmlcov/
 
+    # Minimum coverage
     - name: 🛂 Check minimum coverage
       run: |
         coverage report --fail-under ${{ env.coverage-minimum-percent }}

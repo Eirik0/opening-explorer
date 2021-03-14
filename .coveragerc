@@ -22,7 +22,7 @@ command_line = -m unittest discover -v -s ./test -p test_*.py
 # you run will be considered a separate dynamic context, and coverage data will
 # be segregated for each. A test function is any function whose name starts
 # with “test”.
-#dynamic_context = test_function
+dynamic_context = test_function
 
 # A list of file name patterns, the files to include in measurement or
 # reporting. Ignored if `source` is set.
