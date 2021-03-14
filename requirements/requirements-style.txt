@@ -6,6 +6,7 @@ isort==5.7.0
 lazy-object-proxy==1.5.2
 mccabe==0.6.1
 pylint==2.7.2
+pylint-quotes==0.2.1
 toml==0.10.2
 wrapt==1.12.1
 yapf==0.31.0

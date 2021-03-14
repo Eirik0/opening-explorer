@@ -10,7 +10,7 @@ NestedRequirements = collections.namedtuple('NestedRequirements', ['parent_path'
 
 # Categorized requirements
 REQUIREMENTS_PROD = ['chess']
-REQUIREMENTS_STYLE = ['pylint', 'yapf']
+REQUIREMENTS_STYLE = ['pylint', 'pylint-quotes', 'yapf']
 REQUIREMENTS_COVERAGE = ['coverage']
 
 # Requirements files

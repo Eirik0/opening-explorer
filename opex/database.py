@@ -26,7 +26,7 @@ class Database:
 
     def __init__(self, path=None):
         if path is None:
-            path = ":memory:"
+            path = ':memory:'
 
         self._db = sqlite3.connect(path)
         self._db.row_factory = Database._dict_factory
@@ -45,10 +45,10 @@ class Database:
         self._db.execute('BEGIN')
 
         child_id = self._db.execute(
-            "INSERT INTO openings VALUES (?, ?, ?, ?, ?, ?)",
+            'INSERT INTO openings VALUES (?, ?, ?, ?, ?, ?)',
             (None, position.fen, position.move, position.score, position.depth, position.pv)).lastrowid
 
-        self._db.execute("INSERT INTO game_dag VALUES (?, ?)", (parent_id, child_id))
+        self._db.execute('INSERT INTO game_dag VALUES (?, ?)', (parent_id, child_id))
 
         position.id = child_id
 
@@ -65,22 +65,22 @@ class Database:
         return positions
 
     def get_position(self, fen):
-        cursor = self._db.execute("SELECT * FROM openings WHERE fen = ?", (fen,))
+        cursor = self._db.execute('SELECT * FROM openings WHERE fen = ?', (fen,))
         positions = Database._rows_to_positions(cursor)
         assert len(positions) <= 1
         return None if len(positions) == 0 else positions[0]
 
     def get_child_positions(self, parent_id):
         cursor = self._db.execute(
-            "SELECT openings.* FROM game_dag "
-            " JOIN openings "
-            " ON game_dag.child_id = openings.id "
-            " WHERE game_dag.parent_id = ? ", (parent_id,))
+            'SELECT openings.* FROM game_dag '
+            ' JOIN openings '
+            ' ON game_dag.child_id = openings.id '
+            ' WHERE game_dag.parent_id = ? ', (parent_id,))
         return Database._rows_to_positions(cursor)
 
     def update_position(self, position):
         cursor = self._db.execute(
-            "UPDATE openings SET score = ?, depth = ?, pv = ?  WHERE id = ?",
+            'UPDATE openings SET score = ?, depth = ?, pv = ?  WHERE id = ?',
             (position.score, position.depth, position.pv, position.id))
         positions = Database._rows_to_positions(cursor)
         assert len(positions) <= 1
