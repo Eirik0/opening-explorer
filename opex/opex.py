@@ -1,11 +1,14 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
 import json
 import os
 
 import chess
 import chess.engine
 
-from opex import analysis, database, settings_loader
+from opex import analysis
+from opex import database
+from opex import settings_loader
 
 
 def open_engine_with_options(path, options):

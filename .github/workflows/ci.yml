@@ -9,7 +9,7 @@ on:
 
 env:
   # This should be the same as `command_line` under `[run]` in `.coveragerc`
-  test-command-line: -m unittest discover -v -s ./test -p test_*.py
+  test-command-line: -m unittest discover -v --start-directory ./test --pattern test_*.py
   # This should be the same as `fail_under` under `[report]` in `.coveragerc`
   coverage-minimum-percent: 80
   # Directories containing files to format and lint
@@ -65,10 +65,15 @@ jobs:
         pip install -r requirements.txt
         pip install -r requirements/requirements-style.txt
 
+    # Import order
+    - name: 📝 Sort imports with isort
+      run: |
+        isort --check --diff -v ${{ env.source-dirs }}
+
     # Formatting
     - name: 🧹 Format with yapf
       run: |
-        yapf -d -r -p -vv ${{ env.source-dirs }}
+        yapf --diff --recursive --parallel -vv ${{ env.source-dirs }}
 
     # Linting
     - name: ✨ Lint with pylint
@@ -118,12 +123,12 @@ jobs:
         minimum_coverage: ${{ env.coverage-minimum-percent }}
 
     # Coverage html
-    - name: 📚 Generate coverage html
+    - name: 📊 Generate coverage html
       run: |
         coverage html --fail-under 0
     
     # Upload coverage artifacts
-    - name: 📯 Upload coverage
+    - name: 🤳 Upload coverage
       uses: actions/upload-artifact@v2
       with:
         name: htmlcov
