@@ -1,4 +1,4 @@
-name: ci
+name: ♟️ ci
 
 on:
   push:
@@ -16,34 +16,52 @@ env:
   source-dirs: opex scripts test
 
 jobs:
-  run-tests:
+  check-tests:
+    name: 🧪 check-tests / ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
 
     strategy:
-      fail-fast: false
       matrix:
-        os: [ macos-latest, windows-latest ]
-        python-version: [ 3.x ]
-        should-run-coverage: [ false ]
         include:
-          - os: ubuntu-latest
-            python-version: 3.x
-            should-run-coverage: true
+         - { name: 🍏 macos, os: macos-latest, python-version: 3.9 }
+         - { name: 🖼️ windows, os: windows-latest, python-version: 3.9 }
+         - { name: 🐧 ubuntu, os: ubuntu-latest, python-version: 3.9 }
 
     steps:
     # Setup
     - name: 🛒 Checkout repo
       uses: actions/checkout@v2
-
     - name: 🐍 Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-
-    - name: 🔨 Install dependencies
+    - name: 🛠️ Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements/requirements-all.txt
+        pip install -r requirements.txt
+
+    # Run tests
+    - name: ⚗️ Run unittest
+      run: |
+        python ${{ env.test-command-line }}
+
+  check-format:
+    name: 🥼 check-format / 🐧 ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+    # Setup
+    - name: 🛒 Checkout repo
+      uses: actions/checkout@v2
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: 🛠️ Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements/requirements-style.txt
 
     # Formatting
     - name: 🧹 Format with yapf
@@ -55,26 +73,36 @@ jobs:
       run: |
         pylint -v ${{ env.source-dirs }}
 
-    # Test without coverage
-    - name: 🧪 Run unittest without coverage
-      if: ${{ !matrix.should-run-coverage }}
-      run: |
-        python ${{ env.test-command-line }}
+  check-coverage:
+    name: 🔬 check-coverage / 🐧 ubuntu
+    runs-on: ubuntu-latest
 
-    # Or test with coverage and subsequent related actions
+    steps:
+    # Setup
+    - name: 🛒 Checkout repo
+      uses: actions/checkout@v2
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: 🛠️ Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements/requirements-coverage.txt
+
+    # Test with coverage
     - name: ☂️ Run unittest with coverage
-      if: ${{ matrix.should-run-coverage }}
       run: |
         coverage run ${{ env.test-command-line }}
 
     - name: 🖨️ Generate coverage xml
-      if: ${{ matrix.should-run-coverage }}
       # Override default `fail_under`
       run: |
         coverage xml --fail-under 0
 
     - name: 🐒 Comment coverage on PR
-      if: ${{ matrix.should-run-coverage && github.event_name == 'pull_request' }}
+      if: ${{ github.event_name == 'pull_request' }}
       uses: 5monkeys/cobertura-action@v7
       with:
         path: coverage.xml
@@ -86,13 +114,11 @@ jobs:
         minimum_coverage: ${{ env.coverage-minimum-percent }}
 
     - name: 📯 Upload coverage
-      if: ${{ matrix.should-run-coverage }}
       uses: actions/upload-artifact@v2
       with:
         name: coverage
         path: coverage.xml
 
     - name: 🛂 Check minimum coverage
-      if: ${{ matrix.should-run-coverage }}
       run: |
         coverage report --fail-under ${{ env.coverage-minimum-percent }}
