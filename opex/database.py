@@ -79,8 +79,9 @@ class Database:
         return Database._rows_to_positions(cursor)
 
     def update_position(self, position):
-        cursor = self._db.execute("UPDATE openings SET score = ?, depth = ?, pv = ? "
-                                  " WHERE id = ?", (position.score, position.depth, position.pv, position.id))
+        cursor = self._db.execute(
+            "UPDATE openings SET score = ?, depth = ?, pv = ?  WHERE id = ?",
+            (position.score, position.depth, position.pv, position.id))
         positions = Database._rows_to_positions(cursor)
         assert len(positions) <= 1
         return None if len(positions) == 0 else positions[0]

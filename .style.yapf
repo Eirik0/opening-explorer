@@ -44,6 +44,10 @@ arithmetic_precedence_indication=False
 # definitions.
 blank_lines_around_top_level_definition=2
 
+# Number of blank lines between top-level imports and variable
+# definitions.
+blank_lines_between_top_level_imports_and_variables=1
+
 # Insert a blank line before a class-level docstring.
 blank_line_before_class_docstring=False
 
@@ -320,7 +324,7 @@ split_before_expression_after_opening_paren=False
 
 # If an argument / parameter list is going to be split, then split before
 # the first argument.
-split_before_first_argument=False
+split_before_first_argument=True
 
 # Set to True to prefer splitting before 'and' or 'or' rather than
 # after.
