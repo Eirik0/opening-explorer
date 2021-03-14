@@ -5,7 +5,7 @@ import os
 import subprocess
 import sys
 
-RequirementsPath = collections.namedtuple('RequirementsPath', ['dir', 'file_name'])
+RequirementsPath = collections.namedtuple('RequirementsPath', ['directory', 'file_name'])
 NestedRequirements = collections.namedtuple('NestedRequirements', ['parent_path', 'children'])
 
 # Categorized requirements
@@ -74,7 +74,7 @@ def main():
     pip = Pip()
 
     def create_requirements_file(requirements_path, requirements):
-        file_path = f'{requirements_path.dir}/{requirements_path.file_name}'
+        file_path = f'{requirements_path.directory}/{requirements_path.file_name}'
         print_info(f'Generating {file_path} with {requirements}')
         if pip.freeze():
             exit_with_error('Nonempty requirements')
@@ -102,7 +102,7 @@ def main():
     def get_nested_requirements_entry(parent_path, child):
         if parent_path.startswith('requirements/'):
             return child.file_name
-        return f'{child.dir}/{child.file_name}'
+        return f'{child.directory}/{child.file_name}'
 
     for nested_requirements in [REQUIREMENTS_DEFAULT, REQUIREMENTS_DEV, REQUIREMENTS_ALL]:
         parent_path = nested_requirements.parent_path
