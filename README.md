@@ -18,6 +18,8 @@ Alternatively, copy `opex-default-settings.json` and rename it to `opex-settings
 
 ## Contributing
 
+### Setup
+
 To install all development dependencies run:
 
     pip install -r requirements/requirements-all.txt
