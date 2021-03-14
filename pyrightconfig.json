@@ -4,5 +4,8 @@
         "scripts",
         "test",
     ],
+    "ignore": [
+        ".venv"
+    ],
     "typeCheckingMode": "strict"
 }
