@@ -126,11 +126,9 @@ jobs:
     - name: 📯 Upload coverage
       uses: actions/upload-artifact@v2
       with:
-        name: coverage
+        name: htmlcov
         path: |
-          .coverage
-          coverage.xml
-          htmlcov/
+          htmlcov/*
 
     # Minimum coverage
     - name: 🛂 Check minimum coverage
