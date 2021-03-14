@@ -1,0 +1,11 @@
+{
+    "include": [
+        "opex",
+        "scripts",
+        "test",
+    ],
+    "ignore": [
+        ".venv",
+    ],
+    "typeCheckingMode": "strict"
+}
