@@ -11,7 +11,7 @@ env:
   # This should be the same as `command_line` under `[run]` in `.coveragerc`
   test-command-line: -m unittest discover -v -s ./test -p test_*.py
   # This should be the same as `fail_under` under `[report]` in `.coveragerc`
-  coverage-minimum-percent: 0
+  coverage-minimum-percent: 80
   # Directories containing files to format and lint
   source-dirs: opex scripts test
 
