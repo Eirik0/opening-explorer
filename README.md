@@ -1,18 +1,20 @@
 # Opening Explorer
 
-A Utility for analyzing and exploring chess opening positions.
+A utility for analyzing and exploring chess opening positions.
 
 ## Installation
 
-Getting started using Python3
+### Getting started using Python3
 
     python -m venv .venv
     .venv\Scripts\Activate.ps1 # Assuming powershell
     pip install -r requirements.txt
 
-This will install all the dependencies necessary to run the explorer. Running the program once will generate the settings file.
+This will install all the dependencies necessary to run the explorer.
 
-Launching opex
+### Launching opex
+
+Running the program once will generate the settings file.
 
     python -m opex
 
