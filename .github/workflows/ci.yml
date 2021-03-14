@@ -80,6 +80,36 @@ jobs:
         run: |
           pylint -v ${{ env.source-dirs }}
 
+  # Run type checker
+  check-types:
+    name: check-types / 🐧 ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      # Setup
+      - name: 🛒 Checkout repo
+        uses: actions/checkout@v2
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: 🛠️ Install dependencies (Python)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Setup node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      - name: 🛠️ Install dependencies (node.js)
+        run: |
+          npm install --global pyright
+
+      # Type check
+      - name: Type check with pyright
+        run: |
+          pyright -v ${{ env.source-dirs }}
+
   # Run coverage and generate artifacts
   check-coverage:
     name: 🔬 check-coverage / 🐧 ubuntu
