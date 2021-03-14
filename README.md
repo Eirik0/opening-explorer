@@ -41,4 +41,4 @@ Running tests with coverage and reporting findings
 
 Running unittest without coverage
 
-    python -m unittest discover -v -s ./test -p test_*.py
+    python -m unittest discover -v --start-directory ./test --pattern test_*.py
