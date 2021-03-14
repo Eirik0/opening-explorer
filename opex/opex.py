@@ -161,5 +161,5 @@ def main():
     #         search(position)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
