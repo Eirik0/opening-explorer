@@ -1,6 +1,6 @@
 # Opening Explorer
 
-A utility for analyzing and exploring chess opening positions.
+A utility for analyzing and exploring chess opening positions
 
 ## Installation
 
