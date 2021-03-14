@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         include:
-         - { name: 🍏 macos, os: macos-latest, python-version: 3.9 }
+         - { name: 🍎 macos, os: macos-latest, python-version: 3.9 }
          - { name: 🖼️ windows, os: windows-latest, python-version: 3.9 }
          - { name: 🐧 ubuntu, os: ubuntu-latest, python-version: 3.9 }
 
