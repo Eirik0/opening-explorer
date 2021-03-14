@@ -2,10 +2,10 @@ name: ♟️ CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-    types: [ opened, reopened, synchronize ]
+    branches: [main]
+    types: [opened, reopened, synchronize]
 
 env:
   # This should be the same as `command_line` under `[run]` in `.coveragerc`
@@ -24,27 +24,27 @@ jobs:
     strategy:
       matrix:
         include:
-         - { name: 🍏 macos, os: macos-latest, python-version: 3.9 }
-         - { name: 🖼️ windows, os: windows-latest, python-version: 3.9 }
-         - { name: 🐧 ubuntu, os: ubuntu-latest, python-version: 3.9 }
+          - { name: 🍏 macos, os: macos-latest, python-version: 3.9 }
+          - { name: 🖼️ windows, os: windows-latest, python-version: 3.9 }
+          - { name: 🐧 ubuntu, os: ubuntu-latest, python-version: 3.9 }
 
     steps:
-    # Setup
-    - name: 🛒 Checkout repo
-      uses: actions/checkout@v2
-    - name: 🐍 Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: 🛠️ Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      # Setup
+      - name: 🛒 Checkout repo
+        uses: actions/checkout@v2
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: 🛠️ Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    # Run tests
-    - name: ⚗️ Run unittest
-      run: |
-        python ${{ env.test-command-line }}
+      # Run tests
+      - name: ⚗️ Run unittest
+        run: |
+          python ${{ env.test-command-line }}
 
   # Check formatting and linting
   check-format:
@@ -52,90 +52,90 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Setup
-    - name: 🛒 Checkout repo
-      uses: actions/checkout@v2
-    - name: 🐍 Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - name: 🛠️ Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements/requirements-style.txt
+      # Setup
+      - name: 🛒 Checkout repo
+        uses: actions/checkout@v2
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: 🛠️ Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements/requirements-style.txt
 
-    # Import order
-    - name: 📝 Sort imports with isort
-      run: |
-        isort --check --diff -v ${{ env.source-dirs }}
+      # Import order
+      - name: 📝 Sort imports with isort
+        run: |
+          isort --check --diff -v ${{ env.source-dirs }}
 
-    # Formatting
-    - name: 🧹 Format with yapf
-      run: |
-        yapf --diff --recursive --parallel -vv ${{ env.source-dirs }}
+      # Formatting
+      - name: 🧹 Format with yapf
+        run: |
+          yapf --diff --recursive --parallel -vv ${{ env.source-dirs }}
 
-    # Linting
-    - name: ✨ Lint with pylint
-      run: |
-        pylint -v ${{ env.source-dirs }}
+      # Linting
+      - name: ✨ Lint with pylint
+        run: |
+          pylint -v ${{ env.source-dirs }}
 
-  # Run coverage and generate artifacts 
+  # Run coverage and generate artifacts
   check-coverage:
     name: 🔬 check-coverage / 🐧 ubuntu
     runs-on: ubuntu-latest
 
     steps:
-    # Setup
-    - name: 🛒 Checkout repo
-      uses: actions/checkout@v2
-    - name: 🐍 Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - name: 🛠️ Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements/requirements-coverage.txt
+      # Setup
+      - name: 🛒 Checkout repo
+        uses: actions/checkout@v2
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: 🛠️ Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements/requirements-coverage.txt
 
-    # Run tests with coverage
-    - name: ☂️ Run unittest with coverage
-      run: |
-        coverage run ${{ env.test-command-line }}
+      # Run tests with coverage
+      - name: ☂️ Run unittest with coverage
+        run: |
+          coverage run ${{ env.test-command-line }}
 
-    # Coverage xml
-    - name: 📜 Generate coverage xml
-      run: |
-        coverage xml --fail-under 0
+      # Coverage xml
+      - name: 📜 Generate coverage xml
+        run: |
+          coverage xml --fail-under 0
 
-    # Comment on PR
-    - name: 🐒 Comment coverage on PR
-      if: ${{ github.event_name == 'pull_request' }}
-      uses: 5monkeys/cobertura-action@v7
-      with:
-        path: coverage.xml
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        skip_covered: false
-        show_line: true
-        show_branch: true
-        show_missing: true
-        minimum_coverage: ${{ env.coverage-minimum-percent }}
+      # Comment on PR
+      - name: 🐒 Comment coverage on PR
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: 5monkeys/cobertura-action@v7
+        with:
+          path: coverage.xml
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          skip_covered: false
+          show_line: true
+          show_branch: true
+          show_missing: true
+          minimum_coverage: ${{ env.coverage-minimum-percent }}
 
-    # Coverage html
-    - name: 📊 Generate coverage html
-      run: |
-        coverage html --fail-under 0
-    
-    # Upload coverage artifacts
-    - name: 🤳 Upload coverage
-      uses: actions/upload-artifact@v2
-      with:
-        name: htmlcov
-        path: |
-          htmlcov/*
+      # Coverage html
+      - name: 📊 Generate coverage html
+        run: |
+          coverage html --fail-under 0
 
-    # Minimum coverage
-    - name: 🛂 Check minimum coverage
-      run: |
-        coverage report --fail-under ${{ env.coverage-minimum-percent }}
+      # Upload coverage artifacts
+      - name: 🤳 Upload coverage
+        uses: actions/upload-artifact@v2
+        with:
+          name: htmlcov
+          path: |
+            htmlcov/*
+
+      # Minimum coverage
+      - name: 🛂 Check minimum coverage
+        run: |
+          coverage report --fail-under ${{ env.coverage-minimum-percent }}
