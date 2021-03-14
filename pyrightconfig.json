@@ -1,0 +1,8 @@
+{
+    "include": [
+        "opex",
+        "scripts",
+        "test",
+    ],
+    "typeCheckingMode": "strict"
+}
