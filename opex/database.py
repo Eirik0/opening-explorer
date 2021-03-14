@@ -1,6 +1,5 @@
 import os
 import sqlite3
-from sqlite3 import Cursor
 import sys
 
 from opex.analysis import Position
@@ -8,7 +7,7 @@ from opex.analysis import Position
 from typing import Any, Dict, List, Union
 
 
-def _rows_to_positions(cursor: Cursor) -> List[Position]:
+def _rows_to_positions(cursor: sqlite3.Cursor) -> List[Position]:
     positions: List[Position] = []
     for row in cursor:
         positions.append(Position(row['id'], row['fen'], row['move'], row['score'], row['depth'], row['pv']))
@@ -29,7 +28,7 @@ class Database:
         if path is None:
             path = ':memory:'
 
-        def _dict_factory(cursor: Cursor, row: Any) -> Dict[str, Any]:
+        def _dict_factory(cursor: sqlite3.Cursor, row: Any) -> Dict[str, Any]:
             named_columns: Dict[str, Any] = {}
             for idx, col in enumerate(cursor.description):
                 named_columns[col[0]] = row[idx]
