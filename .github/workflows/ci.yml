@@ -1,4 +1,4 @@
-name: opex
+name: ci
 
 on:
   push:
