@@ -38,6 +38,10 @@ TEST_ENGINE_OPTIONS_DICT = {
 }
 
 
+def create_engine_settings(nickname, path):
+    return {'nickname': nickname, 'path': path}
+
+
 class SettingsLoaderTests(unittest.TestCase):
 
     def test_default_settings_file__exits(self):
@@ -140,44 +144,28 @@ class SettingsLoaderTests(unittest.TestCase):
 
     def test_check_engine_settings__second_engine_path_not_set(self):
         with self.assertRaises(ValueError) as error:
-            settings_loader.check_engine_settings([{
-                'nickname': 'test',
-                'path': 'test'
-            }, {
-                'nickname': 'test',
-                'path': ''
-            }])
+            settings_loader.check_engine_settings(
+                [create_engine_settings('test', 'test'),
+                 create_engine_settings('test', '')])
         self.assertTrue('Engine[1] missing value for \'path\'' in str(error.exception))
 
     def test_check_engine_settings__duplicate_nicknames(self):
         with self.assertRaises(ValueError) as error:
-            settings_loader.check_engine_settings([{
-                'nickname': 'test',
-                'path': 'test'
-            }, {
-                'nickname': 'test',
-                'path': 'test'
-            }])
+            settings_loader.check_engine_settings(
+                [create_engine_settings('test', 'test'),
+                 create_engine_settings('test', 'test')])
         self.assertTrue('\'nickname\' not unique [\'test\']' in str(error.exception))
 
     def test_check_engine_settings__multiple_duplicate_nicknames(self):
         with self.assertRaises(ValueError) as error:
-            settings_loader.check_engine_settings([{
-                'nickname': 'test1',
-                'path': 'test'
-            }, {
-                'nickname': 'test1',
-                'path': 'test'
-            }, {
-                'nickname': 'test2',
-                'path': 'test'
-            }, {
-                'nickname': 'test3',
-                'path': 'test'
-            }, {
-                'nickname': 'test3',
-                'path': 'test'
-            }])
+            settings_loader.check_engine_settings(
+                [
+                    create_engine_settings('test1', 'test1'),
+                    create_engine_settings('test1', 'test1'),
+                    create_engine_settings('test2', 'test2'),
+                    create_engine_settings('test3', 'test3'),
+                    create_engine_settings('test3', 'test3')
+                ])
         self.assertTrue('\'nickname\' not unique [\'test1\', \'test3\']' in str(error.exception))
 
     def test_load_engine_options__empty_file__loads_empty_options(self):
@@ -266,15 +254,15 @@ class SettingsLoaderTests(unittest.TestCase):
             ]
             options_file.writelines(file_lines)
             options_file.seek(0)
-            self.assertEqual({'check_true': False},
-                             settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file))
+            self.assertEqual(
+                {'check_true': False}, settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file))
 
     def test_load_engine_options__edited_file__no_comment_is_ok(self):
         with tempfile.NamedTemporaryFile(mode='r+') as options_file:
             options_file.write('check_true=False\n')
             options_file.seek(0)
-            self.assertEqual({'check_true': False},
-                             settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file))
+            self.assertEqual(
+                {'check_true': False}, settings_loader.load_engine_options(TEST_ENGINE_OPTIONS, options_file))
 
     def test_engine_options_file_lines__default_options(self):
         expected_file_lines = [
@@ -287,8 +275,9 @@ class SettingsLoaderTests(unittest.TestCase):
             'check_true=True                      # type=check\n',
             'check_false=False                    # type=check\n',
         ]
-        self.assertEqual(expected_file_lines,
-                         settings_loader.engine_options_file_lines(TEST_ENGINE_OPTIONS, TEST_ENGINE_OPTIONS_DICT))
+        self.assertEqual(
+            expected_file_lines,
+            settings_loader.engine_options_file_lines(TEST_ENGINE_OPTIONS, TEST_ENGINE_OPTIONS_DICT))
 
     def test_engine_options_file_lines__longer_string__more_whitespace(self):
         expected_file_lines = [
@@ -303,8 +292,8 @@ class SettingsLoaderTests(unittest.TestCase):
         ]
         modified_options = TEST_ENGINE_OPTIONS_DICT.copy()
         modified_options['string_something'] = 'this is a longer string'
-        self.assertEqual(expected_file_lines,
-                         settings_loader.engine_options_file_lines(TEST_ENGINE_OPTIONS, modified_options))
+        self.assertEqual(
+            expected_file_lines, settings_loader.engine_options_file_lines(TEST_ENGINE_OPTIONS, modified_options))
 
     def test_load_engine_options__duplicate_option__error_when_loading(self):
         with self.assertRaises(ValueError) as error:
