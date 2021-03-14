@@ -32,6 +32,7 @@ command_line = -m unittest discover -v -s ./test -p test_*.py
 # reporting.
 omit =
     .venv/*
+    scripts/
 
 # A list of packages or directories, the source to measure during execution. If
 # set, include is ignored.
