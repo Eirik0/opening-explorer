@@ -415,6 +415,9 @@ redefining-builtins-modules=six.moves,past.builtins,future.builtins,builtins,io
 
 [CLASSES]
 
+# Warn about protected attribute access inside special methods
+check-protected-access-in-special-methods=no
+
 # List of method names used to declare (i.e. assign) instance attributes.
 defining-attr-methods=__init__,
                       __new__,
