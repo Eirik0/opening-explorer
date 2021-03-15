@@ -4,39 +4,43 @@ import json
 import os
 
 import chess
-import chess.engine
+from chess import engine
 
 from opex import analysis
 from opex import database
 from opex import settings_loader
+from opex.settings_loader import Json
+
+import typing
+from typing import Any, Dict, List
 
 
-def open_engine_with_options(path, options):
+def open_engine_with_options(path: str, options: engine.ConfigMapping):
     """Opens UCI engine with the specified dictionary of opening options"""
-    engine = chess.engine.SimpleEngine.popen_uci(path)
-    engine.configure(options)
-    return engine
+    uci_engine = engine.SimpleEngine.popen_uci(path)
+    uci_engine.configure(options)
+    return uci_engine
 
 
-def back_propagate(position):  # pylint: disable=unused-argument
-    # TODO
-    pass
+# def back_propagate(position):
+#     # TODO
+#     pass
 
 
-def search(db, engine, board):
-    position = db.get_position(board.fen())
+def search(db: database.Database, uci_engine: engine.SimpleEngine, board: chess.Board):
+    fen = board.fen()  # type: ignore
+    position = db.get_position(fen)
     if position is None:  # This should only happen for root searches
         position = db.insert_position(
             analysis.Position(
                 None,  # id
-                board.fen(),  # fen
+                fen,  # fen
                 None,  # move
                 None,  # score
                 None,  # depth
                 None),  # pv
             None)  # TODO This should be something in the case that the root search is not from the initial position
-
-    children = db.get_child_positions(position.id)
+    children = db.get_child_positions(typing.cast(int, position.id))
 
     legal_moves = list(board.legal_moves)
     if len(children) == len(legal_moves):
@@ -55,17 +59,18 @@ def search(db, engine, board):
         board.push(move)
         # TODO try to load this fen as it may be a transposition.
         # In this case we do not analyze, but still need to update game_dag
-        info = engine.analyse(board, chess.engine.Limit(depth=20))
+        info = typing.cast(dict[str, Any], uci_engine.analyse(board, engine.Limit(depth=20)))
         # TODO mating score
+        fen = board.fen()  # type: ignore
         score = info['score'].relative.score()
         pv = ' '.join([str(move) for move in info['pv']])
-        db.insert_position(analysis.Position(None, board.fen(), move_str, score, 20, pv), position.id)
+        db.insert_position(analysis.Position(None, fen, move_str, score, 20, pv), position.id)
         board.pop()
 
-    back_propagate(position)
+    # back_propagate(position)
 
 
-def ensure_file_exists(file_path):
+def ensure_file_exists(file_path: str) -> None:
     parent_directory = os.path.dirname(file_path)
     if parent_directory != '' and not os.path.isdir(parent_directory):
         os.mkdir(parent_directory)
@@ -74,7 +79,7 @@ def ensure_file_exists(file_path):
             file.write('')
 
 
-def load_settings():
+def load_settings() -> Json:
     ensure_file_exists('opex-settings.json')
     with open('opex-settings.json', 'r+') as settings_file:
         settings_simple = settings_loader.load_settings_simple(settings_file)
@@ -87,15 +92,15 @@ def load_settings():
         return settings_loader.load_settings(settings_file)
 
 
-def load_all_engine_options(settings):
-    engine_options = dict()
-    for engine_setting in settings['engines']:
-        nickname = engine_setting['nickname']
-        path = engine_setting['path']
-        with chess.engine.SimpleEngine.popen_uci(path) as uci_engine:
+def load_all_engine_options(settings: Json) -> Dict[str, engine.ConfigMapping]:
+    engine_options: Dict[str, engine.ConfigMapping] = {}
+    for engine_setting in typing.cast(List[Json], settings['engines']):
+        nickname = typing.cast(str, engine_setting['nickname'])
+        path = typing.cast(str, engine_setting['path'])
+        with engine.SimpleEngine.popen_uci(path) as uci_engine:
             default_options = [option for _, option in uci_engine.options.items()]
         engine_options_directory = settings['engine_options_directory']
-        options_file_path = f'{engine_options_directory}\\{nickname.uci}'
+        options_file_path = f'{engine_options_directory}\\{nickname}.uci'
         ensure_file_exists(options_file_path)
         with open(options_file_path, 'r+') as options_file:
             simple_options = settings_loader.load_engine_options_simple(options_file)
@@ -114,19 +119,23 @@ def load_all_engine_options(settings):
 def main():
     settings = load_settings()
 
-    settings_loader.check_engine_settings(settings['engines'])
+    # TODO create a type for settings
+    engine_settings = typing.cast(List[Json], settings['engines'])
+
+    settings_loader.check_engine_settings(engine_settings)
 
     engine_options = load_all_engine_options(settings)
-    first_engine_settings = settings['engines'][0]
+    first_engine_settings = engine_settings[0]
 
-    with open_engine_with_options(
-            first_engine_settings['path'],
-            engine_options[first_engine_settings['nickname']]) as engine, database.Database() as db:
-        search(db, engine, chess.Board())
-        # for move in board.legal_moves:
-        #     board.push(move)
-        #     print(info)
-        #     board.pop()
+    engine_path = typing.cast(str, first_engine_settings['path'])
+    nickname = typing.cast(str, first_engine_settings['nickname'])
+    with open_engine_with_options(engine_path, engine_options[nickname]) as uci_engine:
+        with database.Database() as db:
+            search(db, uci_engine, chess.Board())
+            # for move in board.legal_moves:
+            #     board.push(move)
+            #     print(info)
+            #     board.pop()
 
     # open database
     # In database, we store:  id, FEN, move (e.g. Nf3), parent id, score, depth, PV

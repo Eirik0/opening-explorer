@@ -46,7 +46,7 @@ def create_engine_settings(nickname: str, path: str) -> Json:
     return {'nickname': nickname, 'path': path}
 
 
-def engine_settings(settings: Json) -> List[Json]:
+def engine_settings(settings: Json) -> List[Json]:  # TODO create a type for settings
     return typing.cast(List[Json], settings['engines'])
 
 
