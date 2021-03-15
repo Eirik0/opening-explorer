@@ -4,19 +4,17 @@ import os.path
 from chess import engine
 
 import typing
-from typing import Dict, List, TextIO, Tuple, Union
+from typing import AnyStr, Dict, IO, List, Tuple, Union
 
 Json = Dict[str, 'JsonValue']
 JsonValue = Union[str, int, bool, Json, List['JsonValue']]
-
-EngineOptions = Dict[str, Union[str, int, bool]]
 
 DEFAULT_SETTINGS_FILE_NAME = 'opex-default-settings.json'
 
 ## Methods for loading json settings
 
 
-def _json_from_file(file: TextIO) -> Json:
+def _json_from_file(file: IO[AnyStr]) -> Json:
     if os.path.getsize(file.name) > 0:
         return typing.cast(Json, json.load(file))
     return {}
@@ -27,7 +25,7 @@ def load_default_settings() -> Json:
         return _json_from_file(settings_file)
 
 
-def load_settings_simple(settings_file: TextIO):
+def load_settings_simple(settings_file: IO[AnyStr]):
     return _json_from_file(settings_file)
 
 
@@ -54,10 +52,10 @@ def _merge_settings(default_settings: JsonValue, user_settings: JsonValue, use_d
     return default_settings if use_default_values else ''
 
 
-def load_settings(user_settings_file: TextIO, use_default_values: bool = True):
+def load_settings(user_settings_file: IO[AnyStr], use_default_values: bool = True) -> Json:
     default_settings = load_default_settings()
     user_settings = load_settings_simple(user_settings_file)
-    return _merge_settings(default_settings, user_settings, use_default_values)
+    return typing.cast(Json, _merge_settings(default_settings, user_settings, use_default_values))
 
 
 ## Methods for loading engine settings and options
@@ -91,11 +89,11 @@ def check_engine_settings(engine_settings_list: List[Json]) -> None:
     _raise_if_duplicates(nickname_counts)
 
 
-def load_engine_options_simple(engine_options_file: TextIO) -> EngineOptions:
-    options: EngineOptions = {}
+def load_engine_options_simple(engine_options_file: IO[AnyStr]) -> engine.ConfigMapping:
+    options: engine.ConfigMapping = {}
     name_counts: Dict[str, int] = {}
     for line_in_file in engine_options_file.read().splitlines():
-        line = line_in_file.strip()
+        line = typing.cast(str, line_in_file.strip())
         if line == '' or line.startswith('#'):
             continue
         line = line.split('#')[0].rstrip()
@@ -125,13 +123,13 @@ def load_engine_options_simple(engine_options_file: TextIO) -> EngineOptions:
 
 def load_engine_options(
         default_options: List[engine.Option],
-        options_file: TextIO,
-        exclude_default_values: bool = True) -> EngineOptions:
+        options_file: IO[AnyStr],
+        exclude_default_values: bool = True) -> engine.ConfigMapping:
 
     def is_empty(value: engine.ConfigValue):
         return value is None or value == '<empty>'
 
-    engine_options: EngineOptions = {}
+    engine_options: engine.ConfigMapping = {}
     full_engine_options = load_engine_options_simple(options_file)
     for option in default_options:
         default_value = option.default
@@ -148,7 +146,7 @@ def load_engine_options(
     return engine_options
 
 
-def check_engine_options(default_options: List[engine.Option], engine_options: EngineOptions) -> None:
+def check_engine_options(default_options: List[engine.Option], engine_options: engine.ConfigMapping) -> None:
 
     def check_check(value: engine.ConfigValue):
         if not isinstance(value, bool):
@@ -207,7 +205,7 @@ def _engine_option_string_and_comment(option: engine.Option, value: engine.Confi
     return (name_equals_val, 'type=unknown')
 
 
-def engine_options_file_lines(default_options: List[engine.Option], user_options: EngineOptions) -> List[str]:
+def engine_options_file_lines(default_options: List[engine.Option], user_options: engine.ConfigMapping) -> List[str]:
     option_infos: List[Tuple[str, str]] = []
     for option in default_options:
         if option.is_managed() or option.type == 'button':
