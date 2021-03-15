@@ -7,5 +7,6 @@
     "ignore": [
         ".venv",
     ],
-    "typeCheckingMode": "strict"
+    "typeCheckingMode": "strict",
+    "reportPrivateUsage": "none", // handled by pylint
 }
