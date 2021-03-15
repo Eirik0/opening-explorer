@@ -58,7 +58,8 @@ def search(db: database.Database, uci_engine: engine.SimpleEngine, board: chess.
             continue
         board.push(move)
         # TODO try to load this fen as it may be a transposition.
-        # In this case we do not analyze, but still need to update game_dag
+        #  In this case we do not analyze, but still need to update game_dag
+        # The following cast should be unnecessary - seems similar to board.fen() type errors
         info = typing.cast(dict[str, Any], uci_engine.analyse(board, engine.Limit(depth=20)))
         # TODO mating score
         fen = board.fen()  # type: ignore
