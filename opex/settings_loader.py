@@ -1,69 +1,82 @@
 import json
 import os.path
 
+from chess import engine
+
+import typing
+from typing import Dict, List, TextIO, Tuple, Union
+
+Json = Dict[str, 'JsonValue']
+JsonValue = Union[str, int, bool, Json, List['JsonValue']]
+
+EngineOptions = Dict[str, Union[str, int, bool]]
+
 DEFAULT_SETTINGS_FILE_NAME = 'opex-default-settings.json'
 
 ## Methods for loading json settings
 
 
-def _json_from_file(file):
-    return json.load(file) if os.path.getsize(file.name) > 0 else dict()
+def _json_from_file(file: TextIO) -> Json:
+    if os.path.getsize(file.name) > 0:
+        return typing.cast(Json, json.load(file))
+    return {}
 
 
-def load_default_settings():
+def load_default_settings() -> Json:
     with open(DEFAULT_SETTINGS_FILE_NAME) as settings_file:
         return _json_from_file(settings_file)
 
 
-def load_settings_simple(settings_file):
+def load_settings_simple(settings_file: TextIO):
     return _json_from_file(settings_file)
 
 
-def _merge_settings(default_settings, user_settings, use_default_values):
+def _merge_settings(default_settings: JsonValue, user_settings: JsonValue, use_default_values: bool) -> JsonValue:
     if isinstance(default_settings, dict):
-        if user_settings is None:
-            user_settings = dict()
+        user_settings = typing.cast(Json, user_settings)
         for key, default_value in default_settings.items():
             if key not in user_settings:
-                user_settings[key] = _merge_settings(default_value, None, use_default_values)
+                user_settings[key] = _merge_settings(default_value, {}, use_default_values)
             elif isinstance(default_value, (dict, list)):
                 user_settings[key] = _merge_settings(default_value, user_settings[key], use_default_values)
             elif user_settings[key] == '' and use_default_values:
                 user_settings[key] = default_value
         return user_settings
     if isinstance(default_settings, list):
-        # Assume that there is only one item in default_settings
+        # In this case, assume that there is only one item in default_settings
+        user_settings = typing.cast(List[JsonValue], user_settings)
         if user_settings is None or len(user_settings) == 0:
             return default_settings
-        updated_settings = []
+        updated_settings: List[JsonValue] = []
         for setting in user_settings:
             updated_settings.append(_merge_settings(default_settings[0], setting, use_default_values))
         return updated_settings
     return default_settings if use_default_values else ''
 
 
-def load_settings(user_settings_file, use_default_values=True):
+def load_settings(user_settings_file: TextIO, use_default_values: bool = True):
     default_settings = load_default_settings()
     user_settings = load_settings_simple(user_settings_file)
     return _merge_settings(default_settings, user_settings, use_default_values)
 
 
-## Methods for loading engine options
+## Methods for loading engine settings and options
 
 
-def _raise_if_duplicates(counts):
-    duplicates = []
+def _raise_if_duplicates(counts: Dict[str, int]) -> None:
+    duplicates: List[str] = []
     for nickname, count in counts.items():
         if count > 1:
             duplicates.append(nickname)
     if len(duplicates) > 0:
+        # TODO This is not always nickname
         raise ValueError(f'\'nickname\' not unique {duplicates}')
 
 
-def check_engine_settings(engine_settings_list):
+def check_engine_settings(engine_settings_list: List[Json]) -> None:
     if len(engine_settings_list) == 0:
         raise ValueError('Engine list was empty')
-    nickname_counts = dict()
+    nickname_counts: Dict[str, int] = {}
     for i, engine_settings in enumerate(engine_settings_list):
         for key in ['nickname', 'path']:
             if key not in engine_settings:
@@ -71,16 +84,16 @@ def check_engine_settings(engine_settings_list):
             if engine_settings[key] == '':
                 raise ValueError(f'Engine[{i}] missing value for \'{key}\'')
         # Count duplicates
-        nickname = engine_settings['nickname']
+        nickname = typing.cast(str, engine_settings['nickname'])
         if nickname not in nickname_counts:
             nickname_counts[nickname] = 0
         nickname_counts[nickname] = nickname_counts[nickname] + 1
     _raise_if_duplicates(nickname_counts)
 
 
-def load_engine_options_simple(engine_options_file):
-    options = dict()
-    name_counts = dict()
+def load_engine_options_simple(engine_options_file: TextIO) -> EngineOptions:
+    options: EngineOptions = {}
+    name_counts: Dict[str, int] = {}
     for line_in_file in engine_options_file.read().splitlines():
         line = line_in_file.strip()
         if line == '' or line.startswith('#'):
@@ -110,12 +123,15 @@ def load_engine_options_simple(engine_options_file):
     return options
 
 
-def load_engine_options(default_options, options_file, exclude_default_values=True):
+def load_engine_options(
+        default_options: List[engine.Option],
+        options_file: TextIO,
+        exclude_default_values: bool = True) -> EngineOptions:
 
-    def is_empty(value):
+    def is_empty(value: engine.ConfigValue):
         return value is None or value == '<empty>'
 
-    engine_options = dict()
+    engine_options: EngineOptions = {}
     full_engine_options = load_engine_options_simple(options_file)
     for option in default_options:
         default_value = option.default
@@ -132,24 +148,24 @@ def load_engine_options(default_options, options_file, exclude_default_values=Tr
     return engine_options
 
 
-def check_engine_options(default_options, engine_options):
+def check_engine_options(default_options: List[engine.Option], engine_options: EngineOptions) -> None:
 
-    def check_check(value):
+    def check_check(value: engine.ConfigValue):
         if not isinstance(value, bool):
             raise ValueError(f'Value \'{value}\' for \'{name}\' not a boolean')
 
-    def check_spin(option, value):
+    def check_spin(option: engine.Option, value: engine.ConfigValue):
         if not isinstance(value, int):
             raise ValueError(f'Value \'{value}\' for \'{name}\' not an integer')
-        if value < option.min or value > option.max:
+        if value < typing.cast(int, option.min) or value > typing.cast(int, option.max):
             raise ValueError(f'Value \'{value}\' for \'{name}\' not in range [{option.min}, {option.max}]')
 
-    def check_combo(option, value):
+    def check_combo(option: engine.Option, value: engine.ConfigValue):
         if value not in option.var:
             raise ValueError(f'Value \'{value}\' for \'{name}\' not in {option.var}')
 
-    managed_options = []
-    button_options = []
+    managed_options: List[str] = []
+    button_options: List[str] = []
     found_names = set()
     for option in default_options:
         name = option.name
@@ -178,7 +194,7 @@ def check_engine_options(default_options, engine_options):
         raise ValueError(f'Unknown options {unknown_names}')
 
 
-def _engine_option_string_and_comment(option, value):
+def _engine_option_string_and_comment(option: engine.Option, value: engine.ConfigValue) -> Tuple[str, str]:
     if value is None:
         value = ''
     name_equals_val = f'{option.name}={value}'
@@ -191,16 +207,15 @@ def _engine_option_string_and_comment(option, value):
     return (name_equals_val, 'type=unknown')
 
 
-def engine_options_file_lines(default_options, user_options):
-    option_infos = []
+def engine_options_file_lines(default_options: List[engine.Option], user_options: EngineOptions) -> List[str]:
+    option_infos: List[Tuple[str, str]] = []
     for option in default_options:
         if option.is_managed() or option.type == 'button':
             continue
-        option_infos.append(
-            _engine_option_string_and_comment(
-                option, user_options[option.name] if option.name in user_options else option.default))
+        value = user_options[option.name] if option.name in user_options else option.default
+        option_infos.append(_engine_option_string_and_comment(option, value))
     max_name_and_val_length = max([len(option_info[0]) for option_info in option_infos])
-    lines = []
+    lines: List[str] = []
     for name_and_val, comment in option_infos:
         lines.append(f'{name_and_val.ljust(max_name_and_val_length + 10)} # {comment}\n')
     return lines
