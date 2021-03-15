@@ -55,9 +55,8 @@ class Database:
             'INSERT INTO openings VALUES (?, ?, ?, ?, ?, ?)',
             (None, position.fen, position.move, position.score, position.depth, position.pv)).lastrowid
         self._db.execute('INSERT INTO game_dag VALUES (?, ?)', (parent_id, child_id))
-        position.id = child_id
         self._db.execute('END')
-        return position
+        return position.with_id(child_id)
 
     def get_position(self, fen: str) -> Optional[Position]:
         cursor = self._db.execute('SELECT * FROM openings WHERE fen = ?', (fen,))
