@@ -1,9 +1,11 @@
-from typing import List
+from typing import List, Optional
 
 
 class Position:
 
-    def __init__(self, id: int, fen: str, move: str, score: float, depth: int, pv: List[str]):
+    def __init__(
+            self, id: Optional[int], fen: Optional[str], move: Optional[str], score: Optional[float],
+            depth: Optional[int], pv: Optional[List[str]]):
         self.id = id
         self.fen = fen
         self.move = move
