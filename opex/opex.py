@@ -1,3 +1,5 @@
+"""A chess opening explorer"""
+
 #!/usr/bin/env python3
 
 import json
@@ -28,6 +30,7 @@ def open_engine_with_options(path: str, options: engine.ConfigMapping):
 
 
 def search(database: db_wrapper.Database, uci_engine: engine.SimpleEngine, board: chess.Board):
+    """Recursive tree search"""
     fen = board.fen()  # type: ignore
     position = database.get_position(fen)
     if position is None:  # This should only happen for root searches
@@ -72,6 +75,7 @@ def search(database: db_wrapper.Database, uci_engine: engine.SimpleEngine, board
 
 
 def ensure_file_exists(file_path: str) -> None:
+    """Create a file and its parent directories if it does not exist"""
     parent_directory = os.path.dirname(file_path)
     if parent_directory != '' and not os.path.isdir(parent_directory):
         os.mkdir(parent_directory)
@@ -81,6 +85,7 @@ def ensure_file_exists(file_path: str) -> None:
 
 
 def load_settings() -> Json:
+    """Loads json settings"""
     ensure_file_exists('opex-settings.json')
     with open('opex-settings.json', 'r+') as settings_file:
         settings_simple = settings_loader.load_settings_simple(settings_file)
@@ -94,6 +99,7 @@ def load_settings() -> Json:
 
 
 def load_all_engine_options(settings: Json) -> Dict[str, engine.ConfigMapping]:
+    """Loads engine options"""
     engine_options: Dict[str, engine.ConfigMapping] = {}
     for engine_setting in typing.cast(List[Json], settings['engines']):
         nickname = typing.cast(str, engine_setting['nickname'])
@@ -118,6 +124,7 @@ def load_all_engine_options(settings: Json) -> Dict[str, engine.ConfigMapping]:
 
 
 def main():
+    """Chess opening explorer"""
     settings = load_settings()
 
     # TODO create a type for settings

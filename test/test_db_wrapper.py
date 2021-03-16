@@ -1,3 +1,5 @@
+"""Tests for db_wrapper.py"""
+
 import unittest
 
 import chess
@@ -8,7 +10,7 @@ from opex.analysis import Position
 import typing
 
 
-class DatabaseTests(unittest.TestCase):
+class TestDBWrapper(unittest.TestCase):
 
     def test_schema(self):
         with db_wrapper.Database() as database:

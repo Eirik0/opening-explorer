@@ -1,3 +1,5 @@
+"""Analysis related classes and methods"""
+
 from __future__ import annotations  # PEP 563
 
 from typing import NamedTuple, Optional
@@ -6,6 +8,7 @@ from typing import NamedTuple, Optional
 
 
 class Position(NamedTuple):
+    """Information nececessary to store the analysis of a position"""
     position_id: Optional[int]
     fen: str
     move: Optional[str]
