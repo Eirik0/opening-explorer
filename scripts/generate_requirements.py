@@ -68,7 +68,7 @@ class Pip:
                 print(proc.stdout, end='')
             if proc.stderr:
                 print(f'!!!\n{proc.stderr}!!!')
-            if proc.returncode != 0:
+            if proc.returncode:
                 exit_with_error(f'Nonzero return code: {proc.returncode}')
             return proc.stdout
 

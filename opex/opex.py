@@ -77,7 +77,7 @@ def search(database: db_wrapper.Database, uci_engine: engine.SimpleEngine, board
 def ensure_file_exists(file_path: str) -> None:
     """Create a file and its parent directories if it does not exist"""
     parent_directory = os.path.dirname(file_path)
-    if parent_directory != '' and not os.path.isdir(parent_directory):
+    if parent_directory and not os.path.isdir(parent_directory):
         os.mkdir(parent_directory)
     if not os.path.isfile(file_path):
         with open(file_path, 'w+') as file:

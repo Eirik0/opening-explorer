@@ -69,7 +69,7 @@ class Database:
         cursor = self._db.execute('SELECT * FROM openings WHERE fen = ?', (fen,))
         positions = _rows_to_positions(cursor)
         assert len(positions) <= 1
-        return None if len(positions) == 0 else positions[0]
+        return None if not positions else positions[0]
 
     def get_child_positions(self, parent_id: int) -> List[Position]:
         """Retrieve a list of child positions from the database"""
@@ -87,4 +87,4 @@ class Database:
             (position.score, position.depth, position.pv, position.position_id))
         positions = _rows_to_positions(cursor)
         assert len(positions) <= 1
-        return None if len(positions) == 0 else positions[0]
+        return None if not positions else positions[0]
