@@ -2,7 +2,7 @@ import unittest
 
 import chess
 
-from opex import database
+from opex import db_wrapper
 from opex.analysis import Position
 
 import typing
@@ -11,25 +11,25 @@ import typing
 class DatabaseTests(unittest.TestCase):
 
     def test_schema(self):
-        with database.Database() as db:
+        with db_wrapper.Database() as database:
             # Assert that both of our tables are created
             # pylint: disable=protected-access
-            cursor = db._db.execute(
+            cursor = database._db.execute(
                 'SELECT count() FROM sqlite_master WHERE type=\'table\' AND (name=\'openings\' OR name=\'game_dag\')')
             self.assertEqual(2, cursor.fetchone()['count()'])
             self.assertEqual(None, cursor.fetchone())
 
     def test_insert_position(self):
-        with database.Database() as db:
+        with db_wrapper.Database() as database:
             board = chess.Board()
             fen = board.fen()  # type: ignore
-            id = db.insert_position(Position(None, fen, None, None, None, None), None)
-            self.assertIsNotNone(id)
+            position_id = database.insert_position(Position(None, fen, None, None, None, None), None)
+            self.assertIsNotNone(position_id)
 
     def test_get_position(self):
-        with database.Database() as db:
+        with db_wrapper.Database() as database:
             board = chess.Board()
             fen = board.fen()  # type: ignore
-            insert_position = db.insert_position(Position(None, fen, None, None, None, None), None)
-            position = typing.cast(Position, db.get_position(fen))
-            self.assertEqual(insert_position.id, position.id)
+            insert_position = database.insert_position(Position(None, fen, None, None, None, None), None)
+            position = typing.cast(Position, database.get_position(fen))
+            self.assertEqual(insert_position.position_id, position.position_id)
