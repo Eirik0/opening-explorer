@@ -56,7 +56,7 @@ class Database:
             (None, position.fen, position.move, position.score, position.depth, position.pv)).lastrowid
         self._db.execute('INSERT INTO game_dag VALUES (?, ?)', (parent_id, child_id))
         self._db.execute('END')
-        return position.with_id(child_id)
+        return position.with_position_id(child_id)
 
     def get_position(self, fen: str) -> Optional[Position]:
         cursor = self._db.execute('SELECT * FROM openings WHERE fen = ?', (fen,))
@@ -75,7 +75,7 @@ class Database:
     def update_position(self, position: Position) -> Optional[Position]:
         cursor = self._db.execute(
             'UPDATE openings SET score = ?, depth = ?, pv = ?  WHERE id = ?',
-            (position.score, position.depth, position.pv, position.id))
+            (position.score, position.depth, position.pv, position.position_id))
         positions = _rows_to_positions(cursor)
         assert len(positions) <= 1
         return None if len(positions) == 0 else positions[0]

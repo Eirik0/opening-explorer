@@ -6,9 +6,9 @@ import os
 import chess
 from chess import engine
 
-from opex import analysis
-from opex import database
+from opex import db_wrapper
 from opex import settings_loader
+from opex.analysis import Position
 from opex.settings_loader import Json
 
 import typing
@@ -27,20 +27,20 @@ def open_engine_with_options(path: str, options: engine.ConfigMapping):
 #     pass
 
 
-def search(db: database.Database, uci_engine: engine.SimpleEngine, board: chess.Board):
+def search(database: db_wrapper.Database, uci_engine: engine.SimpleEngine, board: chess.Board):
     fen = board.fen()  # type: ignore
-    position = db.get_position(fen)
+    position = database.get_position(fen)
     if position is None:  # This should only happen for root searches
-        position = db.insert_position(
-            analysis.Position(
-                None,  # id
+        position = database.insert_position(
+            Position(
+                None,  # position_id
                 fen,  # fen
                 None,  # move
                 None,  # score
                 None,  # depth
                 None),  # pv
             None)  # TODO This should be something in the case that the root search is not from the initial position
-    children = db.get_child_positions(typing.cast(int, position.id))
+    children = database.get_child_positions(typing.cast(int, position.position_id))
 
     legal_moves = list(board.legal_moves)
     if len(children) == len(legal_moves):
@@ -65,7 +65,7 @@ def search(db: database.Database, uci_engine: engine.SimpleEngine, board: chess.
         fen = board.fen()  # type: ignore
         score = info['score'].relative.score()
         pv = ' '.join([str(move) for move in info['pv']])
-        db.insert_position(analysis.Position(None, fen, move_str, score, 20, pv), position.id)
+        database.insert_position(Position(None, fen, move_str, score, 20, pv), position.position_id)
         board.pop()
 
     # back_propagate(position)
@@ -131,8 +131,8 @@ def main():
     engine_path = typing.cast(str, first_engine_settings['path'])
     nickname = typing.cast(str, first_engine_settings['nickname'])
     with open_engine_with_options(engine_path, engine_options[nickname]) as uci_engine:
-        with database.Database() as db:
-            search(db, uci_engine, chess.Board())
+        with db_wrapper.Database() as database:
+            search(database, uci_engine, chess.Board())
             # for move in board.legal_moves:
             #     board.push(move)
             #     print(info)

@@ -60,14 +60,15 @@ confidence=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
-disable=missing-module-docstring,
+disable=
+      missing-module-docstring,
       missing-class-docstring,
       missing-function-docstring,
       redefined-builtin,
       too-many-arguments,
       too-few-public-methods,
       too-many-public-methods,
-      wrong-import-order
+      wrong-import-order,
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
@@ -174,14 +175,12 @@ function-naming-style=snake_case
 #function-rgx=
 
 # Good variable names which should always be accepted, separated by a comma.
-good-names=i,
-           j,
-           k,
-           ex,
-           Run,
-           db,
-           pv,
-           id
+good-names=
+      i,
+      j,
+      k,
+      ex,
+      pv,
 
 # Good variable names regexes, separated by a comma. If names match any regex,
 # they will always be accepted
@@ -266,7 +265,7 @@ single-line-if-stmt=no
 
 # The type of string formatting that logging methods do. `old` means using %
 # formatting, `new` is for `{}` formatting.
-logging-format-style=old
+logging-format-style=new
 
 # Logging modules to check that the string format arguments are in logging
 # function parameter format.
