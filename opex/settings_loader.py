@@ -1,3 +1,5 @@
+"""Methods for loading opex settings and engine options"""
+
 import json
 import os.path
 
@@ -15,6 +17,7 @@ DEFAULT_SETTINGS_FILE_NAME = 'opex-default-settings.json'
 
 
 def _json_from_file(file: IO[AnyStr]) -> Json:
+    """Loads a json file if it nonempty"""
     if os.path.getsize(file.name) > 0:
         return typing.cast(Json, json.load(file))
     return {}
@@ -30,6 +33,7 @@ def load_settings_simple(settings_file: IO[AnyStr]):
 
 
 def _merge_settings(default_settings: JsonValue, user_settings: JsonValue, use_default_values: bool) -> JsonValue:
+    """Merges missing default settings into user settings"""
     if isinstance(default_settings, dict):
         user_settings = typing.cast(Json, user_settings)
         for key, default_value in default_settings.items():
@@ -53,6 +57,7 @@ def _merge_settings(default_settings: JsonValue, user_settings: JsonValue, use_d
 
 
 def load_settings(user_settings_file: IO[AnyStr], use_default_values: bool = True) -> Json:
+    """Parses a json settings file and merges in missing defaults"""
     default_settings = load_default_settings()
     user_settings = load_settings_simple(user_settings_file)
     return typing.cast(Json, _merge_settings(default_settings, user_settings, use_default_values))
@@ -62,6 +67,7 @@ def load_settings(user_settings_file: IO[AnyStr], use_default_values: bool = Tru
 
 
 def _raise_if_duplicates(counts: Dict[str, int]) -> None:
+    """Raises a value error if duplicates have been counted"""
     duplicates: List[str] = []
     for nickname, count in counts.items():
         if count > 1:
@@ -72,6 +78,7 @@ def _raise_if_duplicates(counts: Dict[str, int]) -> None:
 
 
 def check_engine_settings(engine_settings_list: List[Json]) -> None:
+    """Checks the integrity of the list of engine settings"""
     if len(engine_settings_list) == 0:
         raise ValueError('Engine list was empty')
     nickname_counts: Dict[str, int] = {}
@@ -90,6 +97,7 @@ def check_engine_settings(engine_settings_list: List[Json]) -> None:
 
 
 def load_engine_options_simple(engine_options_file: IO[AnyStr]) -> engine.ConfigMapping:
+    """Parses an engine options file into a dictionary"""
     options: engine.ConfigMapping = {}
     name_counts: Dict[str, int] = {}
     for line_in_file in engine_options_file.read().splitlines():
@@ -125,6 +133,7 @@ def load_engine_options(
         default_options: List[engine.Option],
         options_file: IO[AnyStr],
         exclude_default_values: bool = True) -> engine.ConfigMapping:
+    """Parses an engine options file and merges in missing defaults"""
 
     def is_empty(value: engine.ConfigValue):
         return value is None or value == '<empty>'
@@ -147,6 +156,7 @@ def load_engine_options(
 
 
 def check_engine_options(default_options: List[engine.Option], engine_options: engine.ConfigMapping) -> None:
+    """Checks the integrity of the engine options"""
 
     def check_check(value: engine.ConfigValue):
         if not isinstance(value, bool):
@@ -165,6 +175,7 @@ def check_engine_options(default_options: List[engine.Option], engine_options: e
     managed_options: List[str] = []
     button_options: List[str] = []
     found_names = set()
+
     for option in default_options:
         name = option.name
         if name not in engine_options:
@@ -183,16 +194,19 @@ def check_engine_options(default_options: List[engine.Option], engine_options: e
         elif option.type == 'combo':
             check_combo(option, value)
         found_names.add(name)
+
     if len(managed_options) > 0:
         raise ValueError(f'Cannot set managed options {managed_options}')
     if len(button_options) > 0:
         raise ValueError(f'Cannot set button options {button_options}')
+
     unknown_names = [name for name in engine_options if name not in found_names]
     if len(unknown_names) > 0:
         raise ValueError(f'Unknown options {unknown_names}')
 
 
 def _engine_option_string_and_comment(option: engine.Option, value: engine.ConfigValue) -> Tuple[str, str]:
+    """Creates a string representation of an engine option to write to a file"""
     if value is None:
         value = ''
     name_equals_val = f'{option.name}={value}'
@@ -206,6 +220,7 @@ def _engine_option_string_and_comment(option: engine.Option, value: engine.Confi
 
 
 def engine_options_file_lines(default_options: List[engine.Option], user_options: engine.ConfigMapping) -> List[str]:
+    """Create string representations of engine options to write to a file"""
     option_infos: List[Tuple[str, str]] = []
     for option in default_options:
         if option.is_managed() or option.type == 'button':

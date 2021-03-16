@@ -1,3 +1,5 @@
+"""Tests for setting_loader.py"""
+
 import json
 import os
 import tempfile
@@ -50,7 +52,7 @@ def engine_settings(settings: Json) -> List[Json]:  # TODO create a type for set
     return typing.cast(List[Json], settings['engines'])
 
 
-class SettingsLoaderTests(unittest.TestCase):
+class TestSettingsLoader(unittest.TestCase):
 
     def test_default_settings_file__exits(self):
         self.assertTrue(os.path.isfile(settings_loader.DEFAULT_SETTINGS_FILE_NAME))
