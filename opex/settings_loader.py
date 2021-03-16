@@ -41,13 +41,13 @@ def _merge_settings(default_settings: JsonValue, user_settings: JsonValue, use_d
                 user_settings[key] = _merge_settings(default_value, {}, use_default_values)
             elif isinstance(default_value, (dict, list)):
                 user_settings[key] = _merge_settings(default_value, user_settings[key], use_default_values)
-            elif user_settings[key] == '' and use_default_values:
+            elif not user_settings[key] and use_default_values:
                 user_settings[key] = default_value
         return user_settings
     if isinstance(default_settings, list):
         # In this case, assume that there is only one item in default_settings
         user_settings = typing.cast(List[JsonValue], user_settings)
-        if user_settings is None or len(user_settings) == 0:
+        if not user_settings:
             return default_settings
         updated_settings: List[JsonValue] = []
         for setting in user_settings:
@@ -79,14 +79,14 @@ def _raise_if_duplicates(counts: Dict[str, int]) -> None:
 
 def check_engine_settings(engine_settings_list: List[Json]) -> None:
     """Checks the integrity of the list of engine settings"""
-    if len(engine_settings_list) == 0:
+    if not engine_settings_list:
         raise ValueError('Engine list was empty')
     nickname_counts: Dict[str, int] = {}
     for i, engine_settings in enumerate(engine_settings_list):
         for key in ['nickname', 'path']:
             if key not in engine_settings:
                 raise ValueError(f'Engine[{i}] missing \'{key}\'')
-            if engine_settings[key] == '':
+            if not engine_settings[key]:
                 raise ValueError(f'Engine[{i}] missing value for \'{key}\'')
         # Count duplicates
         nickname = typing.cast(str, engine_settings['nickname'])
@@ -102,7 +102,7 @@ def load_engine_options_simple(engine_options_file: IO[AnyStr]) -> engine.Config
     name_counts: Dict[str, int] = {}
     for line_in_file in engine_options_file.read().splitlines():
         line = typing.cast(str, line_in_file.strip())
-        if line == '' or line.startswith('#'):
+        if not line or line.startswith('#'):
             continue
         line = line.split('#')[0].rstrip()
         if '=' not in line:
@@ -147,7 +147,7 @@ def load_engine_options(
         name = option.name
         if name in full_engine_options:
             value = full_engine_options[name]
-            if exclude_default_values and (default_value == value or (is_empty(default_value) and value == '')):
+            if exclude_default_values and (default_value == value or (is_empty(default_value) and not value)):
                 continue
             engine_options[name] = value
         elif not exclude_default_values:
