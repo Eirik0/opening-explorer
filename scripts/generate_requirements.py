@@ -2,6 +2,7 @@
 
 #!/usr/bin/env python3
 
+import argparse
 import os
 import subprocess
 import sys
@@ -57,8 +58,8 @@ class Pip:
     def __getattr__(self, attr: str) -> Callable[..., str]:
         """Allows pip commands to be called as methods"""
 
-        def pip_command(*args: str) -> str:
-            arg_list = list(args)
+        def pip_command(*command_args: str) -> str:
+            arg_list = list(command_args)
             command = [sys.executable, '-m', 'pip', attr] + arg_list
             arg_str = ' '.join(arg_list)
             print(f'> python -m pip {attr} {arg_str}')
@@ -82,7 +83,7 @@ def write_requirements_file(file_path: str, file_lines: List[str]):
         requirements_file.writelines(f'{line}\n' for line in REQUIREMENTS_FILE_HEADER + file_lines)
 
 
-def main():
+def main(install: bool):
     """Generate requirements files"""
     pip = Pip()
 
@@ -124,8 +125,15 @@ def main():
         file_lines = [f'-r {get_nested_requirements_entry(parent_path, child)}' for child in children]
         write_requirements_file(parent_path, file_lines)
 
+    if install:
+        print_info('Installing')
+        pip.install('-r', REQUIREMENTS_DEV.parent_path)
+
     print_info('Finished')
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--install', help='Install requirements after they are generated', action='store_true')
+    args = parser.parse_args()
+    main(args.install)
