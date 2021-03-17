@@ -8,5 +8,5 @@
         ".venv",
     ],
     "typeCheckingMode": "strict",
-    "reportPrivateUsage": "none", // handled by pylint
+    "reportPrivateUsage": "none",
 }
