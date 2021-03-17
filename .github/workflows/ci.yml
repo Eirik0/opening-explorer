@@ -81,7 +81,7 @@ jobs:
           pylint -v ${{ env.source-dirs }}
 
       # Doc string
-      - name: 📝 Docstrings with pydocstyle
+      - name: 🖋️ Docstrings with pydocstyle
         run: |
           pydocstyle --verbose --count ${{ env.source-dirs }}
 
