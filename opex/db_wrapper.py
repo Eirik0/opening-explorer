@@ -35,7 +35,7 @@ class Database:
         if path is None:
             path = ':memory:'
 
-        def _dict_factory(cursor: sqlite3.Cursor, row: Any) -> Dict[str, Any]:
+        def _dict_factory(cursor: sqlite3.Cursor, row: sqlite3.Row) -> Dict[str, Any]:
             named_columns: Dict[str, Any] = {}
             for idx, col in enumerate(cursor.description):
                 named_columns[col[0]] = row[idx]
