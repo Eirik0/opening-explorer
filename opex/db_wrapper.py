@@ -1,4 +1,4 @@
-"""A wrapper around communication with a sqlite database"""
+"""A wrapper around communication with a sqlite database."""
 
 from __future__ import annotations  # PEP 563
 
@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 
 
 def _rows_to_positions(cursor: sqlite3.Cursor) -> List[Position]:
-    """Get a list of positions from a cursor"""
+    """Get a list of positions from a cursor."""
     positions: List[Position] = []
     for row in cursor:
         positions.append(Position(row['id'], row['fen'], row['move'], row['score'], row['depth'], row['pv']))
@@ -20,10 +20,10 @@ def _rows_to_positions(cursor: sqlite3.Cursor) -> List[Position]:
 
 
 class Database:
-    """A wrapper around database input and output"""
+    """A wrapper around database input and output."""
 
     def _initialize_db(self) -> None:
-        """Initialize the database"""
+        """Initialize the database."""
         cursor = self._db.cursor()
         # Expect to find db.schema in same directory as this module
         this_module_dir = os.path.dirname(sys.modules[__name__].__file__)
@@ -55,7 +55,7 @@ class Database:
         self.close()
 
     def insert_position(self, position: Position, parent_id: Optional[int]) -> Position:
-        """Insert a position into the database"""
+        """Insert a position into the database."""
         self._db.execute('BEGIN')
         child_id = self._db.execute(
             'INSERT INTO openings VALUES (?, ?, ?, ?, ?, ?)',
@@ -65,14 +65,14 @@ class Database:
         return position.with_position_id(child_id)
 
     def get_position(self, fen: str) -> Optional[Position]:
-        """Retrieve a position from the database"""
+        """Retrieve a position from the database."""
         cursor = self._db.execute('SELECT * FROM openings WHERE fen = ?', (fen,))
         positions = _rows_to_positions(cursor)
         assert len(positions) <= 1
         return None if not positions else positions[0]
 
     def get_child_positions(self, parent_id: int) -> List[Position]:
-        """Retrieve a list of child positions from the database"""
+        """Retrieve a list of child positions from the database."""
         cursor = self._db.execute(
             'SELECT openings.* FROM game_dag '
             ' JOIN openings '
@@ -81,7 +81,7 @@ class Database:
         return _rows_to_positions(cursor)
 
     def update_position(self, position: Position) -> Optional[Position]:
-        """Update a position in the database"""
+        """Update a position in the database."""
         cursor = self._db.execute(
             'UPDATE openings SET score = ?, depth = ?, pv = ?  WHERE id = ?',
             (position.score, position.depth, position.pv, position.position_id))

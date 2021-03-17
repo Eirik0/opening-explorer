@@ -5,8 +5,10 @@ colorama==0.4.4
 isort==5.7.0
 lazy-object-proxy==1.5.2
 mccabe==0.6.1
+pydocstyle==5.1.1
 pylint==2.7.2
 pylint-quotes==0.2.1
+snowballstemmer==2.1.0
 toml==0.10.2
 wrapt==1.12.1
 yapf==0.31.0

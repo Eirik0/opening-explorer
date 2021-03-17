@@ -1,0 +1,5 @@
+[pydocstyle]
+convention = google
+add_ignore = D1
+match = .*\.py
+match_dir = [^\.].*

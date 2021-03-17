@@ -1,4 +1,4 @@
-"""A script for generating requirements files"""
+"""A script for generating requirements files."""
 
 #!/usr/bin/env python3
 
@@ -11,20 +11,20 @@ from typing import Callable, List, NamedTuple
 
 
 class RequirementsPath(NamedTuple):
-    """A pair of directory and file name"""
+    """A pair of directory and file name."""
     directory: str
     file_name: str
 
 
 class NestedRequirements(NamedTuple):
-    """A pair of parent path and a list of child requirements"""
+    """A pair of parent path and a list of child requirements."""
     parent_path: str
     children: List[RequirementsPath]
 
 
 # Categorized requirements
 REQUIREMENTS_PROD = ['chess']
-REQUIREMENTS_STYLE = ['pylint', 'pylint-quotes', 'yapf']
+REQUIREMENTS_STYLE = ['pydocstyle', 'pylint', 'pylint-quotes', 'yapf']
 REQUIREMENTS_COVERAGE = ['coverage']
 
 # Requirements files
@@ -53,10 +53,10 @@ def print_info(message: str):
 
 
 class Pip:
-    """A wrapper class for communicating with pip"""
+    """A wrapper class for communicating with pip."""
 
     def __getattr__(self, attr: str) -> Callable[..., str]:
-        """Allows pip commands to be called as methods"""
+        """Allows pip commands to be called as methods."""
 
         def pip_command(*command_args: str) -> str:
             arg_list = list(command_args)
@@ -77,14 +77,14 @@ class Pip:
 
 
 def write_requirements_file(file_path: str, file_lines: List[str]):
-    """Overwrites a requirements file with a list of lines"""
+    """Overwrites a requirements file with a list of lines."""
     print_info(f'Writing {file_path}')
     with open(file_path, 'w+') as requirements_file:
         requirements_file.writelines(f'{line}\n' for line in REQUIREMENTS_FILE_HEADER + file_lines)
 
 
 def main(install: bool):
-    """Generate requirements files"""
+    """Generate requirements files."""
     pip = Pip()
 
     def create_requirements_file(requirements_path: RequirementsPath, requirements: List[str]):
