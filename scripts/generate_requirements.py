@@ -134,6 +134,6 @@ def main(install: bool):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--install', help='Install requirements after they are generated', action='store_true')
+    parser.add_argument('-i', '--install', action='store_true', help='Install requirements after they are generated')
     args = parser.parse_args()
     main(args.install)
