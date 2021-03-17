@@ -1,4 +1,4 @@
-"""Tests for db_wrapper.py"""
+"""Tests for db_wrapper."""
 
 import unittest
 

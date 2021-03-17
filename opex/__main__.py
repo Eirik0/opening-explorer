@@ -1,4 +1,4 @@
-"""Main entry point for opex"""
+"""Main entry point for opex."""
 
 from opex import opex
 

@@ -66,7 +66,7 @@ jobs:
           pip install -r requirements/requirements-style.txt
 
       # Import order
-      - name: 📝 Sort imports with isort
+      - name: 🗃️ Sort imports with isort
         run: |
           isort --check --diff -v ${{ env.source-dirs }}
 
@@ -79,6 +79,11 @@ jobs:
       - name: ✨ Lint with pylint
         run: |
           pylint -v ${{ env.source-dirs }}
+
+      # Doc string
+      - name: 🖋️ Docstrings with pydocstyle
+        run: |
+          pydocstyle --verbose --count ${{ env.source-dirs }}
 
   # Run coverage and generate artifacts
   check-coverage:

@@ -1,4 +1,4 @@
-"""Tests for setting_loader.py"""
+"""Tests for setting_loader."""
 
 import json
 import os
