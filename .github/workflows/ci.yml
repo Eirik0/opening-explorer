@@ -15,6 +15,10 @@ env:
   # Directories containing files to format and lint
   source-dirs: opex scripts test
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   # Run tests on mac, windows, and ubuntu
   check-tests:
