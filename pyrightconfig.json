@@ -9,4 +9,5 @@
     ],
     "typeCheckingMode": "strict",
     "reportPrivateUsage": "none",
+    "reportUnusedImport": "none"
 }

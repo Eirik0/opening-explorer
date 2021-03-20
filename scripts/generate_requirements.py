@@ -23,7 +23,7 @@ class NestedRequirements(NamedTuple):
 
 
 # Categorized requirements
-REQUIREMENTS_PROD = ['chess']
+REQUIREMENTS_PROD = ['blessed', 'chess']
 REQUIREMENTS_STYLE = ['pydocstyle', 'pylint', 'pylint-quotes', 'yapf']
 REQUIREMENTS_COVERAGE = ['coverage']
 
