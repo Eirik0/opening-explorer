@@ -1,11 +1,11 @@
 CREATE TABLE IF NOT EXISTS openings (
     id INTEGER PRIMARY KEY AUTOINCREMENT, 
     fen UNIQUE, 
-    move, 
     score, 
     depth, 
     pv); 
 
 CREATE TABLE IF NOT EXISTS game_dag (
     parent_id, 
-    child_id);
+    child_id,
+    move);
