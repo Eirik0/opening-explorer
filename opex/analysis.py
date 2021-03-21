@@ -11,10 +11,9 @@ class Position(NamedTuple):
     """Information nececessary to store the analysis of a position."""
     position_id: Optional[int]
     fen: str
-    move: Optional[str]
-    score: Optional[float]
-    depth: Optional[int]
-    pv: Optional[str]
+    score: float
+    depth: int
+    pv: str
 
     def with_position_id(self, position_id: int) -> Position:
-        return Position(position_id, self.fen, self.move, self.score, self.depth, self.pv)
+        return Position(position_id, self.fen, self.score, self.depth, self.pv)

@@ -8,14 +8,15 @@ import sys
 
 from opex.analysis import Position
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 
-def _rows_to_positions(cursor: sqlite3.Cursor) -> List[Position]:
+def _rows_to_positions(cursor: sqlite3.Cursor) -> Dict[str, Position]:
     """Get a list of positions from a cursor."""
-    positions: List[Position] = []
+    positions: Dict[str, Position] = dict()
     for row in cursor:
-        positions.append(Position(row['id'], row['fen'], row['move'], row['score'], row['depth'], row['pv']))
+        positions[row['move']] = Position(row['id'], row['fen'], row['score'], row['depth'], row['pv'])
+
     return positions
 
 
@@ -54,13 +55,16 @@ class Database:
     def __exit__(self, exc_type: Any, exc_value: Any, exc_traceback: Any) -> None:
         self.close()
 
-    def insert_position(self, position: Position, parent_id: Optional[int]) -> Position:
+    def insert_position(self, position: Position, parent_child_relation: Optional[Tuple[int, str]]) -> Position:
         """Insert a position into the database."""
         self._db.execute('BEGIN')
         child_id = self._db.execute(
-            'INSERT INTO openings VALUES (?, ?, ?, ?, ?, ?)',
-            (None, position.fen, position.move, position.score, position.depth, position.pv)).lastrowid
-        self._db.execute('INSERT INTO game_dag VALUES (?, ?)', (parent_id, child_id))
+            'INSERT INTO openings VALUES (?, ?, ?, ?, ?)',
+            (None, position.fen, position.score, position.depth, position.pv)).lastrowid
+        if parent_child_relation is not None:
+            (parent_id, move) = parent_child_relation
+
+            self._db.execute('INSERT INTO game_dag VALUES (?, ?, ?)', (parent_id, child_id, move))
         self._db.execute('END')
         return position.with_position_id(child_id)
 
@@ -71,10 +75,10 @@ class Database:
         assert len(positions) <= 1
         return None if not positions else positions[0]
 
-    def get_child_positions(self, parent_id: int) -> List[Position]:
+    def get_child_positions(self, parent_id: int) -> Dict[str, Position]:
         """Retrieve a list of child positions from the database."""
         cursor = self._db.execute(
-            'SELECT openings.* FROM game_dag '
+            'SELECT openings.*, game_dag.move FROM game_dag '
             ' JOIN openings '
             ' ON game_dag.child_id = openings.id '
             ' WHERE game_dag.parent_id = ? ', (parent_id,))
