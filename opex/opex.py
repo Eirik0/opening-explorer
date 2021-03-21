@@ -11,6 +11,7 @@ from chess import Move
 
 from opex import db_wrapper
 from opex import settings_loader
+from opex.analysis import ParentRelationship
 from opex.analysis import Position
 from opex.settings_loader import Json
 
@@ -18,11 +19,8 @@ import typing
 from typing import Dict, List
 
 
-def open_engine_with_options(path: str, options: engine.ConfigMapping):
-    """Opens UCI engine with the specified dictionary of opening options."""
-    uci_engine = engine.SimpleEngine.popen_uci(path)
-    uci_engine.configure(options)
-    return uci_engine
+def get_fen(board: chess.Board) -> str:
+    return board.fen()  # type: ignore
 
 
 # def back_propagate(position):
@@ -30,67 +28,76 @@ def open_engine_with_options(path: str, options: engine.ConfigMapping):
 #     pass
 
 
-def select_child(children: List[Position]):
+def select_child_move(children: Dict[str, Position]) -> str:
     # TODO make this smarter
-    return children[0]
+    return next(iter(children.keys()))
 
 
-def search(database: db_wrapper.Database, uci_engine: engine.SimpleEngine, board: chess.Board):
-    """Recursive tree search."""
-    fen = board.fen()  # type: ignore
-    position = database.get_position(fen)
-    if position is None:  # This should only happen for root searches
-        # This position has no known parent/child (may be root). Analyze and insert the root position for this subtree.
-        info = uci_engine.analyse(board, limit=engine.Limit(depth=20))
+class OpeningExplorer:
+    """Uses a uci engine to create analysis which is then stored in a databse."""
 
-        assert 'score' in info
-        assert 'pv' in info
+    def __init__(self, database: db_wrapper.Database, uci_engine: engine.SimpleEngine) -> None:
+        self.database = database
+        self.uci_engine = uci_engine
+
+    def analyze_board(self, board: chess.Board):
+        """Analyzes the board with the uci_engine and creates a Position."""
+        print('Analyzing')
+        info = self.uci_engine.analyse(board, engine.Limit(depth=20))
+        assert 'score' in info and 'pv' in info
         pv = ' '.join([str(move) for move in info['pv']])
-        position = database.insert_position(
-            Position(
-                None,  # position_id
-                fen,  # fen
-                info['score'].relative.score(mate_score=10000),  # score
-                20,  # depth
-                pv),  # pv
-            None)
+        score = info['score'].relative.score(mate_score=10000)
+        print(f'score={score}, pv={pv}')
+        return Position(None, get_fen(board), score, 20, pv)
 
-        return
+    def search(self, board: chess.Board) -> None:
+        """Recursive tree search."""
+        print('Searching root')
+        position = self.database.get_position(get_fen(board))
 
-    children = database.get_child_positions(typing.cast(int, position.position_id))
+        if position is None:
+            # This position has no known parent/child (may be root).
+            # Analyze and insert the root position for this subtree.
+            self.database.insert_position(self.analyze_board(board), None)
+            return
 
-    legal_moves = list(board.legal_moves)
-    if len(children) == len(legal_moves):
-        # This position is full, recurse on one of the children
-        child = select_child(children)
-        board.push(Move.from_uci(child.move))
+        self.search_position(board, position)
 
-    analyzed_children = {child.move for child in children}
+    def search_position(self, board: chess.Board, position: Position) -> None:
+        """Recursive tree search with an already loaded position."""
+        print('Searching position')
+        position_id = typing.cast(int, position.position_id)
 
-    # TODO Defer inserting the last child until we propagate
+        children = self.database.get_child_positions(position_id)
+        legal_moves = list(board.legal_moves)
 
-    for move in legal_moves:
-        move_str = str(move)
-        print(move_str)
-        if move_str in analyzed_children:
-            continue
+        if len(children) == len(legal_moves):
+            # This position is full, recurse on one of the children
+            move = select_child_move(children)
+            print(f'Making move {move}')
+            board.push(Move.from_uci(move))
+            self.search_position(board, children[move])
+            board.pop()
+            print('pop move')
+            return
+
+        unanalyzed_moves = [move for move in legal_moves if move.uci() not in children]
+        move = unanalyzed_moves[0]
+        print(f'Making move {move}')
         board.push(move)
-        # TODO try to load this fen as it may be a transposition.
-        #  In this case we do not analyze, but still need to update game_dag
-        # The following cast should be unnecessary - seems similar to board.fen() type errors
-        # info = typing.cast(dict[str, Any], uci_engine.analyse(board, engine.Limit(depth=20)))
-        info = uci_engine.analyse(board, engine.Limit(depth=20))
-        # TODO mating score
-        fen = board.fen()  #type: ignore
-        assert 'score' in info
-        score = info['score'].relative.score()
-
-        assert 'pv' in info
-        pv = ' '.join([str(move) for move in info['pv']])
-        database.insert_position(Position(None, fen, move_str, score, 20, pv), position.position_id)
+        self.database.insert_position(self.analyze_board(board), ParentRelationship(position_id, move.uci()))
+        print('pop move')
         board.pop()
+        if len(unanalyzed_moves) == 1:
+            print('Back progogate')
+            # TODO back propogate (unmake move ?)
 
-    # back_propagate(position)
+
+def open_engine_with_options(path: str, options: engine.ConfigMapping):
+    """Opens UCI engine with the specified dictionary of opening options."""
+    uci_engine = engine.SimpleEngine.popen_uci(path)
+    uci_engine.configure(options)
+    return uci_engine
 
 
 def ensure_file_exists(file_path: str) -> None:
@@ -158,43 +165,10 @@ def main():
     nickname = typing.cast(str, first_engine_settings['nickname'])
     with open_engine_with_options(engine_path, engine_options[nickname]) as uci_engine:
         with db_wrapper.Database() as database:
-            search(database, uci_engine, chess.Board())
-            # for move in board.legal_moves:
-            #     board.push(move)
-            #     print(info)
-            #     board.pop()
-
-    # open database
-    # In database, we store:  id, FEN, move (e.g. Nf3), parent id, score, depth, PV
-    # tree search algorithm
-    #  - evaluate existing at greater depth
-    #  - evaluate everything at a fixed depth up to move no
-    #    - possibly filter bad moves
-    # - can always either add more moves or go deeper
-    # - start with depth 10, 20, 30 , 40 , 45 , 50?
-    #     -
-
-    # board = chess.Board()
-    # limit = 1
-    # while True:
-    #     search(opening)
-
-    # def search(position):
-    #     id = get or create row for position
-    #     load rows positions with that id as their parent id
-    #     if None
-    #         check no legal moves?
-    #         expand()
-    #         multi pv search for number of moves up to depth 40
-    #         create rows
-    #         back propagate
-    #          - update parents score depth and pv
-    #     else
-    #         check existance of all rows if one missing start there
-    #         find best move
-    #         best score = score + uncertainty
-    #         position.push(move)
-    #         search(position)
+            opex = OpeningExplorer(database, uci_engine)
+            board = chess.Board()
+            while True:
+                opex.search(board)
 
 
 if __name__ == '__main__':

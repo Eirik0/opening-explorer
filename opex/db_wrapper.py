@@ -8,16 +8,16 @@ import sys
 
 from opex.analysis import Position
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 
-def _rows_to_positions(cursor: sqlite3.Cursor) -> Dict[str, Position]:
-    """Get a list of positions from a cursor."""
-    positions: Dict[str, Position] = dict()
-    for row in cursor:
-        positions[row['move']] = Position(row['id'], row['fen'], row['score'], row['depth'], row['pv'])
-
-    return positions
+def _get_position_or_none(cursor: sqlite3.Cursor) -> Optional[Position]:
+    """Gets a single position from a cursor and asserts that there is only one."""
+    row = cursor.fetchone()
+    if row is None:
+        return None
+    assert cursor.fetchone() is None
+    return Position(row['id'], row['fen'], row['score'], row['depth'], row['pv'])
 
 
 class Database:
@@ -63,7 +63,6 @@ class Database:
             (None, position.fen, position.score, position.depth, position.pv)).lastrowid
         if parent_child_relation is not None:
             (parent_id, move) = parent_child_relation
-
             self._db.execute('INSERT INTO game_dag VALUES (?, ?, ?)', (parent_id, child_id, move))
         self._db.execute('END')
         return position.with_position_id(child_id)
@@ -71,24 +70,32 @@ class Database:
     def get_position(self, fen: str) -> Optional[Position]:
         """Retrieve a position from the database."""
         cursor = self._db.execute('SELECT * FROM openings WHERE fen = ?', (fen,))
-        positions = _rows_to_positions(cursor)
-        assert len(positions) <= 1
-        return None if not positions else positions[0]
+        return _get_position_or_none(cursor)
 
     def get_child_positions(self, parent_id: int) -> Dict[str, Position]:
         """Retrieve a list of child positions from the database."""
         cursor = self._db.execute(
-            'SELECT openings.*, game_dag.move FROM game_dag '
-            ' JOIN openings '
-            ' ON game_dag.child_id = openings.id '
-            ' WHERE game_dag.parent_id = ? ', (parent_id,))
-        return _rows_to_positions(cursor)
+            'SELECT '
+            '  openings.id, '
+            '  openings.fen, '
+            '  openings.score, '
+            '  openings.depth, '
+            '  openings.pv, '
+            '  game_dag.move '
+            'FROM game_dag '
+            'JOIN openings '
+            'ON game_dag.child_id = openings.id '
+            'WHERE game_dag.parent_id = ? ', (parent_id,))
+
+        positions: Dict[str, Position] = {}
+        for row in cursor:
+            positions[row['move']] = Position(row['id'], row['fen'], row['score'], row['depth'], row['pv'])
+
+        return positions
 
     def update_position(self, position: Position) -> Optional[Position]:
         """Update a position in the database."""
         cursor = self._db.execute(
             'UPDATE openings SET score = ?, depth = ?, pv = ?  WHERE id = ?',
             (position.score, position.depth, position.pv, position.position_id))
-        positions = _rows_to_positions(cursor)
-        assert len(positions) <= 1
-        return None if not positions else positions[0]
+        return _get_position_or_none(cursor)
